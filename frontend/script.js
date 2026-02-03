@@ -7,11 +7,9 @@ async function loadStudents() {
 
     students.forEach(s => {
         const div = document.createElement("div");
-        div.innerText = s.name + " (" + s.role + ")";
-        container.appendChild(div);
-    });
-}
-
+        div.innerHTML =
+    s.name + " (" + s.role + ") " +
+    <button onclick="deleteStudent(${s.id})">Удалить</button>;
 async function addStudent() {
     const name = document.getElementById("newStudent").value.trim();
 
@@ -24,3 +22,7 @@ async function addStudent() {
 }
 
 window.onload = loadStudents;
+async function deleteStudent(id) {
+    await fetch("/students/" + id, { method: "DELETE" });
+    loadStudents();
+}

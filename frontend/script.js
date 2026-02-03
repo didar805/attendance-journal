@@ -5,11 +5,18 @@ async function loadStudents() {
     const container = document.getElementById("students");
     container.innerHTML = "";
 
-    students.forEach(s => {
+   students.forEach(s => {
     const div = document.createElement("div");
-    div.innerHTML =
-        s.name + " (" + s.role + ") " +
-        <button onclick="deleteStudent(${s.id})">X</button>;
+
+    const text = document.createElement("span");
+    text.innerText = s.name + " (" + s.role + ") ";
+
+    const btn = document.createElement("button");
+    btn.innerText = "Удалить";
+    btn.onclick = () => deleteStudent(s.id);
+
+    div.appendChild(text);
+    div.appendChild(btn);
     container.appendChild(div);
 });
 

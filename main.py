@@ -1,7 +1,11 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 app = FastAPI(title="Attendance Journal API")
 
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
 @app.get("/")
 def home():
-    return {"message": "Backend работает 🚀"}
+    return FileResponse("frontend/index.html")

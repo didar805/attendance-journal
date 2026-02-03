@@ -3,12 +3,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-app = FastAPI(title="Attendance Journal API")
+app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 students = [
-    {"id": 1, "name": "Баллыева Б.", "role": "студент"},
+    {"id": 1, "name": "Балльева Б.", "role": "студент"},
     {"id": 2, "name": "Бердиев Р.", "role": "студент"},
     {"id": 3, "name": "Назаров Дидар", "role": "администратор"},
 ]
@@ -26,15 +26,10 @@ def add_student(name: str):
     if not name.strip():
         return {"status": "error"}
 
-    new_id = len(students) + 1
     students.append({
-        "id": new_id,
+        "id": len(students)+1,
         "name": name,
         "role": "студент"
     })
+
     return {"status": "ok"}
-@app.delete("/students/{student_id}")
-def delete_student(student_id: int):
-    global students
-    students = [s for s in students if s["id"] != student_id]
-    return {"status": "deleted"}

@@ -8,17 +8,31 @@ async function loadStudents() {
     students.forEach(s => {
         const div = document.createElement("div");
 
-        const btn = document.createElement("button");
-        btn.innerText = "Удалить";
-        btn.onclick = () => deleteStudent(s.id);
-
-        div.innerText = s.name + " (" + s.role + ") ";
-        div.appendChild(btn);
+        div.innerHTML =
+            s.name + " (" + s.role + ") " +
+            <button onclick="deleteStudent(${s.id})">Удалить</button>;
 
         container.appendChild(div);
     });
 }
+
+async function addStudent() {
+    const name = document.getElementById("newStudent").value.trim();
+
+    if (name === "") {
+        alert("Введите имя студента");
+        return;
+    }
+
+    await fetch("/students/add?name=" + name, { method: "POST" });
+
+    document.getElementById("newStudent").value = "";
+    loadStudents();
+}
+
 async function deleteStudent(id) {
     await fetch("/students/" + id, { method: "DELETE" });
     loadStudents();
 }
+
+window.onload = loadStudents;

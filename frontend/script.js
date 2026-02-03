@@ -18,7 +18,7 @@ async function loadStudents() {
         btn.style.padding = "0";
 
         const img = document.createElement("img");
-        img.src = "/static/delete.png";
+        img.src = "/static/delete.svg";
         img.width = 16;
 
         img.onmouseover = () =>

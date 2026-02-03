@@ -28,3 +28,12 @@ async function addStudent() {
     document.getElementById("newStudent").value = "";
     loadStudents();
 }
+students.forEach(s => {
+    const div = document.createElement("div");
+
+    div.innerHTML =
+        s.name + " (" + s.role + ") " +
+        <button onclick="deleteStudent(${s.id})">Удалить</button>;
+
+    container.appendChild(div);
+});

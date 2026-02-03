@@ -13,3 +13,8 @@ async function loadStudents() {
 }
 
 window.onload = loadStudents;
+async function addStudent() {
+    const name = document.getElementById("newStudent").value;
+    await fetch("/students/add?name=" + name, { method: "POST" });
+    loadStudents();
+}

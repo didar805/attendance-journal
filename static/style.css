@@ -1,0 +1,21 @@
+body {
+    font-family: Arial;
+    background: #f2f2f2;
+}
+
+.container {
+    width: 600px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.row {
+    margin: 10px 0;
+}
+
+button {
+    margin-left: 20px;
+    padding: 6px 12px;
+}

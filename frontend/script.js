@@ -6,11 +6,14 @@ async function loadStudents() {
     container.innerHTML = "";
 
     students.forEach(s => {
-        const div = document.createElement("div");
-        div.innerText = s.name + " (" + s.role + ")";
-        container.appendChild(div);
-    });
-}
+    const div = document.createElement("div");
+
+    div.innerHTML =
+        s.name + " (" + s.role + ") " +
+        <button onclick="deleteStudent(${s.id})">Удалить</button>;
+
+    container.appendChild(div);
+});
 
 window.onload = loadStudents;
 async function addStudent() {

@@ -29,3 +29,10 @@ async function addStudent() {
 }
 
 window.onload = loadStudents;
+async function deleteStudent(id) {
+    await fetch("/students/" + id, {
+        method: "DELETE"
+    });
+
+    loadStudents();
+}

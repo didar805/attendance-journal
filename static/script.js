@@ -52,7 +52,35 @@ async function deleteStudent(id) {
     await fetch("/students/" + id, {
         method: "DELETE"
     });
+<div id="students"></div>
 
+<script>
+async function loadStudents() {
+    const res = await fetch("/students");
+    const students = await res.json();
+
+    const div = document.getElementById("students");
+    div.innerHTML = "";
+
+    students.forEach(s => {
+        div.innerHTML += 
+            <div>
+                ${s.name}
+                <button onclick="markPresent(${s.id})">
+                    Men geldim
+                </button>
+            </div>
+        ;
+    });
+}
+
+async function markPresent(id) {
+    await fetch("/attendance/mark/" + id, { method: "POST" });
+    alert("Bellik goýuldy!");
+}
+
+loadStudents();
+</script>
     loadStudents();
 }
 

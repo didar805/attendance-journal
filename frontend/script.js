@@ -5,21 +5,21 @@ async function loadStudents() {
     const container = document.getElementById("students");
     container.innerHTML = "";
 
-   students.forEach(s => {
-    const div = document.createElement("div");
+    students.forEach(s => {
+        const div = document.createElement("div");
 
-    const text = document.createElement("span");
-    text.innerText = s.name + " (" + s.role + ") ";
+        const text = document.createElement("span");
+        text.innerText = s.name + " (" + s.role + ") ";
 
-    const btn = document.createElement("button");
-    btn.innerText = "Удалить";
-    btn.onclick = () => deleteStudent(s.id);
+        const btn = document.createElement("button");
+        btn.innerText = "Удалить";
+        btn.onclick = () => deleteStudent(s.id);
 
-    div.appendChild(text);
-    div.appendChild(btn);
-    container.appendChild(div);
-});
-
+        div.appendChild(text);
+        div.appendChild(btn);
+        container.appendChild(div);
+    });
+}
 async function addStudent() {
     const name = document.getElementById("newStudent").value.trim();
 

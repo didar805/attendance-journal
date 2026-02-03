@@ -7,11 +7,7 @@ async function loadStudents() {
 
     students.forEach(s => {
         const div = document.createElement("div");
-
-        div.innerHTML =
-            s.name + " (" + s.role + ") " +
-            <button onclick="deleteStudent(${s.id})">Удалить</button>;
-
+        div.innerText = s.name + " (" + s.role + ")";
         container.appendChild(div);
     });
 }
@@ -19,19 +15,11 @@ async function loadStudents() {
 async function addStudent() {
     const name = document.getElementById("newStudent").value.trim();
 
-    if (name === "") {
-        alert("Введите имя студента");
-        return;
-    }
+    if (name === "") return;
 
     await fetch("/students/add?name=" + name, { method: "POST" });
 
     document.getElementById("newStudent").value = "";
-    loadStudents();
-}
-
-async function deleteStudent(id) {
-    await fetch("/students/" + id, { method: "DELETE" });
     loadStudents();
 }
 

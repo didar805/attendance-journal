@@ -25,14 +25,12 @@ def get_students():
 
 @app.post("/students/add")
 def add_student(name: str):
-    new_id = len(students) + 1
-    students.append({
-        "id": new_id,
-        "name": name,
-        "role": "студент"
-    })
-    return {"status": "ok"}
+    if not name.strip():
+        return {"status": "error"}
 
+    new_id = len(students) + 1
+    students.append({"id": new_id, "name": name, "role": "студент"})
+    return {"status": "ok"}
 
 @app.delete("/students/{student_id}")
 def delete_student(student_id: int):

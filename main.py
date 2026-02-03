@@ -3,25 +3,23 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-app = FastAPI(title="Журнал посещаемости")
+app = FastAPI(title="Attendance Journal API")
 
-# Подключаем папку frontend
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
-# Главная страница
-@app.get("/")
-def home():
-    return FileResponse(os.path.join("frontend", "index.html"))
 students = [
     {"id": 1, "name": "Балльева Б.", "role": "студент"},
     {"id": 2, "name": "Бердиев Р.", "role": "студент"},
     {"id": 3, "name": "Назаров Дидар", "role": "администратор"},
 ]
 
+@app.get("/")
+def home():
+    return FileResponse(os.path.join("frontend", "index.html"))
+
 @app.get("/students")
 def get_students():
     return students
-
 
 @app.post("/students/add")
 def add_student(name: str):
@@ -29,7 +27,11 @@ def add_student(name: str):
         return {"status": "error"}
 
     new_id = len(students) + 1
-    students.append({"id": new_id, "name": name, "role": "студент"})
+    students.append({
+        "id": new_id,
+        "name": name,
+        "role": "студент"
+    })
     return {"status": "ok"}
 
 @app.delete("/students/{student_id}")

@@ -12,7 +12,22 @@ async function loadStudents() {
         text.innerText = s.name + " (" + s.role + ") ";
 
         const btn = document.createElement("button");
-        btn.innerText = "Удалить";
+        btn.style.border = "none";
+        btn.style.background = "none";
+        btn.style.cursor = "pointer";
+        btn.style.padding = "0";
+
+        const img = document.createElement("img");
+        img.src = "/static/delete.png";
+        img.width = 16;
+
+        img.onmouseover = () =>
+            img.style.filter =
+                "brightness(0) saturate(100%) invert(19%) sepia(98%) saturate(7496%) hue-rotate(358deg) brightness(94%) contrast(119%)";
+
+        img.onmouseout = () => img.style.filter = "none";
+
+        btn.appendChild(img);
         btn.onclick = () => deleteStudent(s.id);
 
         div.appendChild(text);
@@ -20,6 +35,7 @@ async function loadStudents() {
         container.appendChild(div);
     });
 }
+
 async function addStudent() {
     const name = document.getElementById("newStudent").value.trim();
 
@@ -36,11 +52,13 @@ async function addStudent() {
     loadStudents();
 }
 
-window.onload = loadStudents;
 async function deleteStudent(id) {
-    await fetch("/students/" + id, {
-        method: "DELETE"
-    });
+    if (!confirm("Удалить студента?")) {
+        return;
+    }
 
+    await fetch("/students/" + id, { method: "DELETE" });
     loadStudents();
 }
+
+window.onload = loadStudents;

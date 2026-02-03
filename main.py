@@ -15,7 +15,8 @@ students = [
 
 @app.get("/")
 def home():
-    return FileResponse(os.path.join("frontend", "index.html"))
+    file_path = os.path.join(os.path.dirname(file), "frontend", "index.html")
+    return FileResponse(file_path)
 
 @app.get("/students")
 def get_students():

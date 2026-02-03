@@ -5,7 +5,7 @@ import os
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 students = [
     {"id": 1, "name": "Балльева Б.", "role": "студент"},

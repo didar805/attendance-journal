@@ -21,19 +21,27 @@ async function loadStudents() {
     data.students.forEach(s => {
     const li = document.createElement("li");
     li.textContent = s.name + " (" + s.group + ") ";
+const savedStatus = localStorage.getItem(s.name);
 
+if (savedStatus === "yes") {
+    li.style.color = "green";
+}
+if (savedStatus === "no") {
+    li.style.color = "red";
+}
     const btnYes = document.createElement("button");
 btnYes.textContent = "Geldi";
 btnYes.onclick = () => {
     li.style.color = "green";
+    localStorage.setItem(s.name, "yes");
 };
 
 const btnNo = document.createElement("button");
 btnNo.textContent = "Gelmedi";
 btnNo.onclick = () => {
     li.style.color = "red";
+    localStorage.setItem(s.name, "no");
 };
-
 li.appendChild(btnYes);
 li.appendChild(btnNo);
 list.appendChild(li);
@@ -53,6 +61,7 @@ loadStudents();
 
 </body>
 </html>
+
 
 
 

@@ -12,3 +12,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/")
 def home():
     return FileResponse("templates/index.html")
+@app.get("/journal")
+def journal():
+    return {"message": "Journal sahypa"}

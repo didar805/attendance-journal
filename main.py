@@ -19,6 +19,8 @@ def home():
 @app.get("/journal")
 def journal():
    return FileResponse("templates/journal.html")
-    @app.get("/api/students")
+   
+    
+@app.get("/api/students")
 def get_students():
     return {"students": students}

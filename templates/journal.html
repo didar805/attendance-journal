@@ -6,7 +6,7 @@
 
 <script>
 async function loadStudents() {
-    const res = await fetch("/journal");
+    const res = await fetch("/api/students");
     const data = await res.json();
 
     const list = document.getElementById("studentList");
@@ -23,3 +23,4 @@ loadStudents();
 
 </body>
 </html>
+

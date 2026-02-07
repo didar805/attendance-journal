@@ -14,30 +14,5 @@
 
     <button type="submit">Login</button>
 </form>
-
-<script>
-async function login() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    const formData = new FormData();
-formData.append("username", username);
-formData.append("password", password);
-
-const res = await fetch("/auth/login", {
-    method: "POST",
-    body: formData
-});
-
-    const data = await res.json();
-
-    if (data.status === "ok") {
-        alert("Login OK");
-    } else {
-        alert("Login yalnys");
-    }
-}
-</script>
-
 </body>
 </html>

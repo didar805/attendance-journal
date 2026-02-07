@@ -38,9 +38,9 @@ async function login() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    await fetch(/login?email=${email}&password=${password}, {
-        method: "POST"
-    });
+     await fetch(`/login?email=${email}&password=${password}`, {
+    method: "POST"
+});
 
     alert("Giriş edildi");
 }

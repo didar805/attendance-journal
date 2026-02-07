@@ -4,8 +4,8 @@ from fastapi.responses import FileResponse
 from datetime import date
 import os
 
-app = FastAPI()
 from auth import router as auth_router
+app = FastAPI()
 app.include_router(auth_router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

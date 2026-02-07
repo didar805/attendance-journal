@@ -2,6 +2,13 @@
 <html>
 <body>
 <h3>Studentler:</h3>
+  <h3>Student goş</h3>
+
+<input id="name" placeholder="Ady">
+<input id="group" placeholder="Topary">
+<button onclick="addStudent()">Goş</button>
+
+<br><br>  
 <ul id="studentList"></ul>
 
 <script>
@@ -19,8 +26,17 @@ async function loadStudents() {
 }
 
 loadStudents();
+    async function addStudent() {
+    const name = document.getElementById("name").value;
+    const group = document.getElementById("group").value;
+
+    const li = document.createElement("li");
+    li.textContent = name + " (" + group + ")";
+    document.getElementById("studentList").appendChild(li);
+}
 </script>
 
 </body>
 </html>
+
 

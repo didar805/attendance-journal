@@ -1,8 +1,11 @@
-import sys
 import os
+from fastapi import APIRouter
 
-sys.path.append(os.path.dirname(__file__))
+auth_router = APIRouter()
 
+@auth_router.post("/login")
+def login(email: str, password: str):
+    return {"status": "ok"}
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse

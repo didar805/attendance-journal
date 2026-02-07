@@ -24,3 +24,10 @@ def journal():
 @app.get("/api/students")
 def get_students():
     return {"students": students}
+
+from fastapi import Request
+@app.post("/api/students")
+async def add_student(request: Request):
+    data = await request.json()
+    students.append(data)
+    return {"status": "ok"}

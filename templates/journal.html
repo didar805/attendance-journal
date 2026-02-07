@@ -1,7 +1,25 @@
 <!DOCTYPE html>
 <html>
 <body>
-<h1>Journal sahypa</h1>
-<p>Login üstünlikli boldy.</p>
+<h3>Studentler:</h3>
+<ul id="studentList"></ul>
+
+<script>
+async function loadStudents() {
+    const res = await fetch("/journal");
+    const data = await res.json();
+
+    const list = document.getElementById("studentList");
+
+    data.students.forEach(s => {
+        const li = document.createElement("li");
+        li.textContent = s.name + " (" + s.group + ")";
+        list.appendChild(li);
+    });
+}
+
+loadStudents();
+</script>
+
 </body>
 </html>

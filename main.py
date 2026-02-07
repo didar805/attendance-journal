@@ -14,4 +14,4 @@ def home():
     return FileResponse("templates/index.html")
 @app.get("/journal")
 def journal():
-    return {"message": "Journal sahypa"}
+    return FileResponse("templates/journal.html")

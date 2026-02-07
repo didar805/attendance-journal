@@ -5,7 +5,7 @@ from datetime import date
 import os
 
 app = FastAPI()
-from attendance_journal.auth import router as auth_router
+from auth import router as auth_router
 app.include_router(auth_router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

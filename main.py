@@ -3,7 +3,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from datetime import date
 import os
-
 from backend.auth import router as auth_router
 app = FastAPI()
 app.include_router(auth_router)

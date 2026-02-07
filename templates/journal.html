@@ -19,10 +19,18 @@ async function loadStudents() {
     const list = document.getElementById("studentList");
 
     data.students.forEach(s => {
-        const li = document.createElement("li");
-        li.textContent = s.name + " (" + s.group + ")";
-        list.appendChild(li);
-    });
+    const li = document.createElement("li");
+    li.textContent = s.name + " (" + s.group + ") ";
+
+    const btn = document.createElement("button");
+    btn.textContent = "Geldi";
+    btn.onclick = () => {
+        li.style.color = "green";
+    };
+
+    li.appendChild(btn);
+    list.appendChild(li);
+});
 }
 
 loadStudents();
@@ -38,5 +46,6 @@ loadStudents();
 
 </body>
 </html>
+
 
 

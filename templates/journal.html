@@ -10,6 +10,7 @@
 
 <br><br> 
   <h4 id="count">Geldi: 0</h4>
+  <h4 id="total">Jemi: 0</h4>
 <ul id="studentList"></ul>
 <ul id="studentList"></ul>
 
@@ -69,6 +70,8 @@ function updateCount() {
 
     document.getElementById("count").textContent =
         "Geldi: " + geldi + " | Gelmedi: " + gelmedi;
+  document.getElementById("total").textContent =
+    "Jemi: " + items.length;
 }
     async function addStudent() {
     const name = document.getElementById("name").value;
@@ -82,6 +85,7 @@ function updateCount() {
 
 </body>
 </html>
+
 
 
 

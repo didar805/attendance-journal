@@ -11,8 +11,17 @@
 <br><br> 
   <h4 id="count">Geldi: 0</h4>
   <h4 id="total">Jemi: 0</h4>
-<ul id="studentList"></ul>
-<ul id="studentList"></ul>
+<table border="1" width="100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Student</th>
+            <th>Topar</th>
+            <th>Bu gün</th>
+        </tr>
+    </thead>
+    <tbody id="studentList"></tbody>
+</table>
 
 <script>
 async function loadStudents() {
@@ -85,6 +94,7 @@ function updateCount() {
 
 </body>
 </html>
+
 
 
 

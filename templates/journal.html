@@ -53,17 +53,22 @@ list.appendChild(li);
 }
 
 loadStudents();
-  function updateCount() {
+function updateCount() {
     const items = document.querySelectorAll("#studentList li");
-    let count = 0;
+    let geldi = 0;
+    let gelmedi = 0;
 
     items.forEach(li => {
         if (li.style.color === "green") {
-            count++;
+            geldi++;
+        }
+        if (li.style.color === "red") {
+            gelmedi++;
         }
     });
 
-    document.getElementById("count").textContent = "Geldi: " + count;
+    document.getElementById("count").textContent =
+        "Geldi: " + geldi + " | Gelmedi: " + gelmedi;
 }
     async function addStudent() {
     const name = document.getElementById("name").value;
@@ -77,6 +82,7 @@ loadStudents();
 
 </body>
 </html>
+
 
 
 

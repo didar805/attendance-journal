@@ -3,15 +3,11 @@
 <body>
 
 <h3>Studentler:</h3>
+<h3>Student goş</h3>
 
-<h3>Student goş (Admin)</h3>
 <input id="name" placeholder="Ady">
 <input id="group" placeholder="Topary">
 <button onclick="addStudent()">Goş</button>
-
-<br><br>
-
-<button onclick="addDay()">Täze gün goş</button>
 
 <br><br>
 
@@ -20,10 +16,11 @@
 
 <table border="1" width="100%">
 <thead>
-<tr id="tableHead">
+<tr>
 <th>#</th>
 <th>Student</th>
 <th>Topar</th>
+<th>Gatnaşygy</th>
 <th>Dolandyryş</th>
 </tr>
 </thead>
@@ -33,31 +30,6 @@
 
 <script>
 
-let days = JSON.parse(localStorage.getItem("days") || "[]");
-
-function renderDays() {
-    const head = document.getElementById("tableHead");
-
-    // öňki gün sütünlerini poz
-    head.querySelectorAll(".daycol").forEach(e => e.remove());
-
-    days.forEach(day => {
-        const th = document.createElement("th");
-        th.textContent = day;
-        th.className = "daycol";
-        head.appendChild(th);
-    });
-}
-
-function addDay() {
-    const d = prompt("Günüň ady:");
-    if (!d) return;
-
-    days.push(d);
-    localStorage.setItem("days", JSON.stringify(days));
-    loadStudents();
-}
-
 async function loadStudents() {
     const res = await fetch("/api/students");
     const data = await res.json();
@@ -65,13 +37,14 @@ async function loadStudents() {
     const list = document.getElementById("studentList");
     list.innerHTML = "";
 
-    renderDays();
-
+    // API studentler
     data.students.forEach((s, index) => {
         addRow(list, s.name, s.group, index + 1);
     });
 
+    // Lokal goşulanlar
     const extra = JSON.parse(localStorage.getItem("extraStudents") || "[]");
+
     extra.forEach(s => {
         addRow(list, s.name, s.group, list.children.length + 1);
     });
@@ -98,57 +71,75 @@ function addRow(list, name, group, number) {
     const tdGroup = document.createElement("td");
     tdGroup.textContent = group;
 
-    const tdButtons = document.createElement("td");
+    // attendance
+    const tdAttend = document.createElement("td");
 
-    const btnEdit = document.createElement("button");
-    btnEdit.textContent = "Edit";
-    btnEdit.onclick = () => {
-        const newName = prompt("Täze ad:", name);
-        const newGroup = prompt("Täze topar:", group);
+    const savedStatus = localStorage.getItem("att_" + name);
+    if (savedStatus === "yes") tr.style.color = "green";
+    if (savedStatus === "no") tr.style.color = "red";
 
-        if (newName) tdName.textContent = newName;
-        if (newGroup) tdGroup.textContent = newGroup;
+    const btnYes = document.createElement("button");
+    btnYes.textContent = "Geldi";
+    btnYes.onclick = () => {
+        tr.style.color = "green";
+        localStorage.setItem("att_" + name, "yes");
+        updateCount();
     };
+
+    const btnNo = document.createElement("button");
+    btnNo.textContent = "Gelmedi";
+    btnNo.onclick = () => {
+        tr.style.color = "red";
+        localStorage.setItem("att_" + name, "no");
+        updateCount();
+    };
+
+    tdAttend.appendChild(btnYes);
+    tdAttend.appendChild(btnNo);
+
+    // dolandyryş
+    const tdButtons = document.createElement("td");
 
     const btnDelete = document.createElement("button");
     btnDelete.textContent = "Poz";
     btnDelete.onclick = () => {
         tr.remove();
+
+        // localStorage-dan hem poz
+        let extra = JSON.parse(localStorage.getItem("extraStudents") || "[]");
+        extra = extra.filter(s => s.name !== name);
+        localStorage.setItem("extraStudents", JSON.stringify(extra));
+
+        localStorage.removeItem("att_" + name);
+
         renumber();
         updateCount();
     };
 
-    tdButtons.appendChild(btnEdit);
     tdButtons.appendChild(btnDelete);
 
     tr.appendChild(tdNum);
     tr.appendChild(tdName);
     tr.appendChild(tdGroup);
+    tr.appendChild(tdAttend);
     tr.appendChild(tdButtons);
-
-    // gün attendance
-    days.forEach(day => {
-        const td = document.createElement("td");
-
-        const btnYes = document.createElement("button");
-        btnYes.textContent = "✔";
-        btnYes.onclick = () => td.style.background = "lightgreen";
-
-        const btnNo = document.createElement("button");
-        btnNo.textContent = "✖";
-        btnNo.onclick = () => td.style.background = "salmon";
-
-        td.appendChild(btnYes);
-        td.appendChild(btnNo);
-
-        tr.appendChild(td);
-    });
 
     list.appendChild(tr);
 }
 
 function updateCount() {
     const rows = document.querySelectorAll("#studentList tr");
+
+    let geldi = 0;
+    let gelmedi = 0;
+
+    rows.forEach(tr => {
+        if (tr.style.color === "green") geldi++;
+        if (tr.style.color === "red") gelmedi++;
+    });
+
+    document.getElementById("count").textContent =
+        "Geldi: " + geldi + " | Gelmedi: " + gelmedi;
 
     document.getElementById("total").textContent =
         "Jemi: " + rows.length;
@@ -175,7 +166,6 @@ function addStudent() {
 }
 
 loadStudents();
-
 </script>
 
 </body>

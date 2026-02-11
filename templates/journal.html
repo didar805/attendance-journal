@@ -79,7 +79,12 @@ async function loadStudents() {
         tr.appendChild(tdButtons);
 
         list.appendChild(tr);
+        let extra = JSON.parse(localStorage.getItem("extraStudents") || "[]");
+extra.push({ name, group });
+localStorage.setItem("extraStudents", JSON.stringify(extra));
         updateCount();
+        document.getElementById("name").value = "";
+document.getElementById("group").value = "";
     });
 
     updateCount();
@@ -130,8 +135,6 @@ function addStudent() {
         tr.style.color = "green";
         localStorage.setItem(name, "yes");
         updateCount();
-        document.getElementById("name").value = "";
-document.getElementById("group").value = "";
     };
 
     const btnNo = document.createElement("button");
@@ -160,5 +163,6 @@ loadStudents();
 
 </body>
 </html>
+
 
 

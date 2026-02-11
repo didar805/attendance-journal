@@ -35,59 +35,64 @@ async function loadStudents() {
     const list = document.getElementById("studentList");
     list.innerHTML = "";
 
+    // API-dan gelen studentler
     data.students.forEach((s, index) => {
-        const tr = document.createElement("tr");
+        addRow(list, s.name, s.group, index + 1);
+    });
 
-        const tdNum = document.createElement("td");
-        tdNum.textContent = index + 1;
+    // Lokal goşulan studentler
+    const extra = JSON.parse(localStorage.getItem("extraStudents") || "[]");
 
-        const tdName = document.createElement("td");
-        tdName.textContent = s.name;
-
-        const tdGroup = document.createElement("td");
-        tdGroup.textContent = s.group;
-
-        const tdButtons = document.createElement("td");
-
-        const savedStatus = localStorage.getItem(s.name);
-
-        if (savedStatus === "yes") tr.style.color = "green";
-        if (savedStatus === "no") tr.style.color = "red";
-
-        const btnYes = document.createElement("button");
-        btnYes.textContent = "Geldi";
-        btnYes.onclick = () => {
-            tr.style.color = "green";
-            localStorage.setItem(s.name, "yes");
-            updateCount();
-        };
-
-        const btnNo = document.createElement("button");
-        btnNo.textContent = "Gelmedi";
-        btnNo.onclick = () => {
-            tr.style.color = "red";
-            localStorage.setItem(s.name, "no");
-            updateCount();
-        };
-
-        tdButtons.appendChild(btnYes);
-        tdButtons.appendChild(btnNo);
-
-        tr.appendChild(tdNum);
-        tr.appendChild(tdName);
-        tr.appendChild(tdGroup);
-        tr.appendChild(tdButtons);
-
-        list.appendChild(tr);
-        let extra = JSON.parse(localStorage.getItem("extraStudents") || "[]");
-extra.push({ name, group });
-localStorage.setItem("extraStudents", JSON.stringify(extra));
-        updateCount();
-        document.getElementById("name").value = "";
-document.getElementById("group").value = "";
+    extra.forEach((s) => {
+        addRow(list, s.name, s.group, list.children.length + 1);
     });
 
     updateCount();
+}
+
+function addRow(list, name, group, number) {
+    const tr = document.createElement("tr");
+
+    const tdNum = document.createElement("td");
+    tdNum.textContent = number;
+
+    const tdName = document.createElement("td");
+    tdName.textContent = name;
+
+    const tdGroup = document.createElement("td");
+    tdGroup.textContent = group;
+
+    const tdButtons = document.createElement("td");
+
+    const savedStatus = localStorage.getItem(name);
+    if (savedStatus === "yes") tr.style.color = "green";
+    if (savedStatus === "no") tr.style.color = "red";
+
+    const btnYes = document.createElement("button");
+    btnYes.textContent = "Geldi";
+    btnYes.onclick = () => {
+        tr.style.color = "green";
+        localStorage.setItem(name, "yes");
+        updateCount();
+    };
+
+    const btnNo = document.createElement("button");
+    btnNo.textContent = "Gelmedi";
+    btnNo.onclick = () => {
+        tr.style.color = "red";
+        localStorage.setItem(name, "no");
+        updateCount();
+    };
+
+    tdButtons.appendChild(btnYes);
+    tdButtons.appendChild(btnNo);
+
+    tr.appendChild(tdNum);
+    tr.appendChild(tdName);
+    tr.appendChild(tdGroup);
+    tr.appendChild(tdButtons);
+
+    list.appendChild(tr);
 }
 
 function updateCount() {
@@ -116,44 +121,15 @@ function addStudent() {
 
     const list = document.getElementById("studentList");
 
-    const tr = document.createElement("tr");
+    addRow(list, name, group, list.children.length + 1);
 
-    const tdNum = document.createElement("td");
-    tdNum.textContent = list.children.length + 1;
+    // Lokal saklamak
+    let extra = JSON.parse(localStorage.getItem("extraStudents") || "[]");
+    extra.push({ name, group });
+    localStorage.setItem("extraStudents", JSON.stringify(extra));
 
-    const tdName = document.createElement("td");
-    tdName.textContent = name;
-
-    const tdGroup = document.createElement("td");
-    tdGroup.textContent = group;
-
-    const tdButtons = document.createElement("td");
-
-    const btnYes = document.createElement("button");
-    btnYes.textContent = "Geldi";
-    btnYes.onclick = () => {
-        tr.style.color = "green";
-        localStorage.setItem(name, "yes");
-        updateCount();
-    };
-
-    const btnNo = document.createElement("button");
-    btnNo.textContent = "Gelmedi";
-    btnNo.onclick = () => {
-        tr.style.color = "red";
-        localStorage.setItem(name, "no");
-        updateCount();
-    };
-
-    tdButtons.appendChild(btnYes);
-    tdButtons.appendChild(btnNo);
-
-    tr.appendChild(tdNum);
-    tr.appendChild(tdName);
-    tr.appendChild(tdGroup);
-    tr.appendChild(tdButtons);
-
-    list.appendChild(tr);
+    document.getElementById("name").value = "";
+    document.getElementById("group").value = "";
 
     updateCount();
 }
@@ -163,6 +139,3 @@ loadStudents();
 
 </body>
 </html>
-
-
-

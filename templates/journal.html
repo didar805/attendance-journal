@@ -81,11 +81,16 @@ function addRow(list, name, group, number) {
     btnNo.onclick = () => {
         tr.style.color = "red";
         localStorage.setItem(name, "no");
-        updateCount();
-    };
+        const btnDelete = document.createElement("button");
+btnDelete.textContent = "Poz";
+btnDelete.onclick = () => {
+    tr.remove();
+    updateCount();
+};
 
     tdButtons.appendChild(btnYes);
     tdButtons.appendChild(btnNo);
+    tdButtons.appendChild(btnDelete);
 
     tr.appendChild(tdNum);
     tr.appendChild(tdName);
@@ -139,3 +144,4 @@ loadStudents();
 
 </body>
 </html>
+

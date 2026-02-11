@@ -11,6 +11,11 @@
 
 <br><br>
 
+<h3>Aý saýla</h3>
+<select id="monthSelect" onchange="reloadForMonth()"></select>
+
+<br><br>
+
 <h4 id="count">Geldi: 0 | Gelmedi: 0</h4>
 <h4 id="total">Jemi: 0</h4>
 
@@ -30,17 +35,40 @@
 
 <script>
 
+function fillMonths(){
+    const sel = document.getElementById("monthSelect");
+    sel.innerHTML="";
+
+    const months = [
+        "Ýanwar","Fewral","Mart","Aprel","Maý","Iýun",
+        "Iýul","Awgust","Sentýabr","Oktýabr","Noýabr","Dekabr"
+    ];
+
+    const now = new Date();
+    const current = now.getMonth();
+
+    months.forEach((m,i)=>{
+        const opt=document.createElement("option");
+        opt.value=i+1;
+        opt.textContent=m;
+        if(i===current) opt.selected=true;
+        sel.appendChild(opt);
+    });
+}
+
 function getMonthKey(){
-    const d = new Date();
-    return d.getFullYear()+"_"+(d.getMonth()+1);
+    const d=new Date();
+    const year=d.getFullYear();
+    const month=document.getElementById("monthSelect").value;
+    return year+"_"+month;
 }
 
 function getStudents(){
-    return JSON.parse(localStorage.getItem("students") || "[]");
+    return JSON.parse(localStorage.getItem("students")||"[]");
 }
 
 function saveStudents(list){
-    localStorage.setItem("students", JSON.stringify(list));
+    localStorage.setItem("students",JSON.stringify(list));
 }
 
 function renumber(){
@@ -155,6 +183,9 @@ function addStudent(){
 }
 
 function loadStudents(){
+    const list=document.getElementById("studentList");
+    list.innerHTML="";
+
     const students=getStudents();
     const key=getMonthKey();
 
@@ -162,13 +193,18 @@ function loadStudents(){
         addRow(
             s.name,
             s.group,
-            s["status_"+key] || ""
+            s["status_"+key]||""
         );
     });
 
     updateCount();
 }
 
+function reloadForMonth(){
+    loadStudents();
+}
+
+fillMonths();
 loadStudents();
 
 </script>

@@ -2,9 +2,9 @@
 <html>
 <body>
 
-<h3>Studentler</h3>
-
+<h3>Studentler:</h3>
 <h3>Student goş</h3>
+
 <input id="name" placeholder="Ady">
 <input id="group" placeholder="Topary">
 <button onclick="addStudent()">Goş</button>
@@ -15,19 +15,19 @@
 <h4 id="total">Jemi: 0</h4>
 
 <table border="1" width="100%">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Student</th>
-            <th>Topar</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody id="studentList"></tbody>
+<thead>
+<tr>
+<th>#</th>
+<th>Student</th>
+<th>Topar</th>
+<th>Gatnaşygy</th>
+</tr>
+</thead>
+
+<tbody id="studentList"></tbody>
 </table>
 
 <script>
-
 async function loadStudents() {
     const res = await fetch("/api/students");
     const data = await res.json();
@@ -36,19 +36,84 @@ async function loadStudents() {
     list.innerHTML = "";
 
     data.students.forEach((s, index) => {
-        createRow(s.name, s.group, index + 1);
+        const tr = document.createElement("tr");
+
+        const tdNum = document.createElement("td");
+        tdNum.textContent = index + 1;
+
+        const tdName = document.createElement("td");
+        tdName.textContent = s.name;
+
+        const tdGroup = document.createElement("td");
+        tdGroup.textContent = s.group;
+
+        const tdButtons = document.createElement("td");
+
+        const savedStatus = localStorage.getItem(s.name);
+
+        if (savedStatus === "yes") tr.style.color = "green";
+        if (savedStatus === "no") tr.style.color = "red";
+
+        const btnYes = document.createElement("button");
+        btnYes.textContent = "Geldi";
+        btnYes.onclick = () => {
+            tr.style.color = "green";
+            localStorage.setItem(s.name, "yes");
+            updateCount();
+        };
+
+        const btnNo = document.createElement("button");
+        btnNo.textContent = "Gelmedi";
+        btnNo.onclick = () => {
+            tr.style.color = "red";
+            localStorage.setItem(s.name, "no");
+            updateCount();
+        };
+
+        tdButtons.appendChild(btnYes);
+        tdButtons.appendChild(btnNo);
+
+        tr.appendChild(tdNum);
+        tr.appendChild(tdName);
+        tr.appendChild(tdGroup);
+        tr.appendChild(tdButtons);
+
+        list.appendChild(tr);
     });
 
     updateCount();
 }
 
-function createRow(name, group, number) {
+function updateCount() {
+    const rows = document.querySelectorAll("#studentList tr");
+
+    let geldi = 0;
+    let gelmedi = 0;
+
+    rows.forEach(tr => {
+        if (tr.style.color === "green") geldi++;
+        if (tr.style.color === "red") gelmedi++;
+    });
+
+    document.getElementById("count").textContent =
+        "Geldi: " + geldi + " | Gelmedi: " + gelmedi;
+
+    document.getElementById("total").textContent =
+        "Jemi: " + rows.length;
+}
+
+function addStudent() {
+    const name = document.getElementById("name").value;
+    const group = document.getElementById("group").value;
+
+    if (!name || !group) return;
+
     const list = document.getElementById("studentList");
 
     const tr = document.createElement("tr");
 
     const tdNum = document.createElement("td");
-    tdNum.textContent = number;
+    tdNum.textContent = list.children.length + 1;
 
     const tdName = document.createElement("td");
     tdName.textContent = name;
@@ -56,11 +121,7 @@ function createRow(name, group, number) {
     const tdGroup = document.createElement("td");
     tdGroup.textContent = group;
 
-    const tdStatus = document.createElement("td");
-
-    const savedStatus = localStorage.getItem(name);
-    if (savedStatus === "yes") tr.style.color = "green";
-    if (savedStatus === "no") tr.style.color = "red";
+    const tdButtons = document.createElement("td");
 
     const btnYes = document.createElement("button");
     btnYes.textContent = "Geldi";
@@ -78,49 +139,20 @@ function createRow(name, group, number) {
         updateCount();
     };
 
-    tdStatus.appendChild(btnYes);
-    tdStatus.appendChild(btnNo);
+    tdButtons.appendChild(btnYes);
+    tdButtons.appendChild(btnNo);
 
     tr.appendChild(tdNum);
     tr.appendChild(tdName);
     tr.appendChild(tdGroup);
-    tr.appendChild(tdStatus);
+    tr.appendChild(tdButtons);
 
     list.appendChild(tr);
-}
-
-function updateCount() {
-    const items = document.querySelectorAll("#studentList tr");
-
-    let geldi = 0;
-    let gelmedi = 0;
-
-    items.forEach(tr => {
-        if (tr.style.color === "green") geldi++;
-        if (tr.style.color === "red") gelmedi++;
-    });
-
-    document.getElementById("count").textContent =
-        "Geldi: " + geldi + " | Gelmedi: " + gelmedi;
-
-    document.getElementById("total").textContent =
-        "Jemi: " + items.length;
-}
-
-function addStudent() {
-    const name = document.getElementById("name").value;
-    const group = document.getElementById("group").value;
-
-    if (!name || !group) return;
-
-    const list = document.getElementById("studentList");
-    createRow(name, group, list.children.length + 1);
 
     updateCount();
 }
 
 loadStudents();
-
 </script>
 
 </body>

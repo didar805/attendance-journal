@@ -30,25 +30,38 @@
 
 <script>
 
-async function loadStudents() {
-    const res = await fetch("/api/students");
-    const data = await res.json();
+const JOURNAL_URL =
+"https://lk.vshte.ru/api/Journals/Journal?journalID=34123";
 
+async function loadStudents() {
     const list = document.getElementById("studentList");
     list.innerHTML = "";
 
-    // API studentler
-    data.students.forEach((s, index) => {
-        addRow(list, s.name, s.group, index + 1);
-    });
+    let deleted = JSON.parse(localStorage.getItem("deletedStudents") || "[]");
 
-    // Lokal goşulanlar
+    try {
+        const res = await fetch(JOURNAL_URL);
+        const data = await res.json();
+
+        if (data.students) {
+            data.students.forEach((s) => {
+                if (!deleted.includes(s.name))
+                    addRow(list, s.name, s.group);
+            });
+        }
+
+    } catch (e) {
+        console.log("API okunmady");
+    }
+
     const extra = JSON.parse(localStorage.getItem("extraStudents") || "[]");
 
     extra.forEach(s => {
-        addRow(list, s.name, s.group, list.children.length + 1);
+        if (!deleted.includes(s.name))
+            addRow(list, s.name, s.group);
     });
 
+    renumber();
     updateCount();
 }
 
@@ -59,20 +72,17 @@ function renumber() {
     });
 }
 
-function addRow(list, name, group, number) {
+function addRow(list, name, group) {
     const tr = document.createElement("tr");
 
     const tdNum = document.createElement("td");
-    tdNum.textContent = number;
-
     const tdName = document.createElement("td");
-    tdName.textContent = name;
-
     const tdGroup = document.createElement("td");
-    tdGroup.textContent = group;
-
-    // attendance
     const tdAttend = document.createElement("td");
+    const tdButtons = document.createElement("td");
+
+    tdName.textContent = name;
+    tdGroup.textContent = group;
 
     const savedStatus = localStorage.getItem("att_" + name);
     if (savedStatus === "yes") tr.style.color = "green";
@@ -97,18 +107,18 @@ function addRow(list, name, group, number) {
     tdAttend.appendChild(btnYes);
     tdAttend.appendChild(btnNo);
 
-    // dolandyryş
-    const tdButtons = document.createElement("td");
-
     const btnDelete = document.createElement("button");
     btnDelete.textContent = "Poz";
     btnDelete.onclick = () => {
         tr.remove();
 
-        // localStorage-dan hem poz
         let extra = JSON.parse(localStorage.getItem("extraStudents") || "[]");
         extra = extra.filter(s => s.name !== name);
         localStorage.setItem("extraStudents", JSON.stringify(extra));
+
+        let deleted = JSON.parse(localStorage.getItem("deletedStudents") || "[]");
+        if (!deleted.includes(name)) deleted.push(name);
+        localStorage.setItem("deletedStudents", JSON.stringify(deleted));
 
         localStorage.removeItem("att_" + name);
 
@@ -153,7 +163,7 @@ function addStudent() {
 
     const list = document.getElementById("studentList");
 
-    addRow(list, name, group, list.children.length + 1);
+    addRow(list, name, group);
 
     let extra = JSON.parse(localStorage.getItem("extraStudents") || "[]");
     extra.push({ name, group });
@@ -162,10 +172,12 @@ function addStudent() {
     document.getElementById("name").value = "";
     document.getElementById("group").value = "";
 
+    renumber();
     updateCount();
 }
 
 loadStudents();
+
 </script>
 
 </body>

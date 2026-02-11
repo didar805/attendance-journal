@@ -1,40 +1,177 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Login</title>
-</head>
 <body>
 
-<h2>Login sahypa</h2>
+<h3>Studentler</h3>
 
-<form onsubmit="login(); return false;">
-    <input type="text" id="username" name="username" placeholder="Username">
-   <input type="password" id="password" name="password" placeholder="Password">
+<h3>Student goş</h3>
+<input id="name" placeholder="Ady">
+<input id="group" placeholder="Topary">
+<button onclick="addStudent()">Goş</button>
 
-    <button type="submit">Login</button>
-</form>
-</body>
-</html>
+<br><br>
+
+<h4 id="count">Geldi: 0 | Gelmedi: 0</h4>
+<h4 id="total">Jemi: 0</h4>
+
+<table border="1" width="100%">
+<thead>
+<tr>
+<th>#</th>
+<th>Student</th>
+<th>Topar</th>
+<th>Gatnaşygy</th>
+<th>Dolandyryş</th>
+</tr>
+</thead>
+
+<tbody id="studentList"></tbody>
+</table>
+
 <script>
-async function login() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
 
-    const formData = new FormData();
-    formData.append("username", username);
-    formData.append("password", password);
+function getMonthKey(){
+    const d = new Date();
+    return d.getFullYear()+"_"+(d.getMonth()+1);
+}
 
-    const res = await fetch("/login", {
-        method: "POST",
-        body: formData
+function getStudents(){
+    return JSON.parse(localStorage.getItem("students") || "[]");
+}
+
+function saveStudents(list){
+    localStorage.setItem("students", JSON.stringify(list));
+}
+
+function renumber(){
+    document.querySelectorAll("#studentList tr")
+        .forEach((tr,i)=>tr.children[0].textContent=i+1);
+}
+
+function updateCount(){
+    const rows=document.querySelectorAll("#studentList tr");
+    let geldi=0, gelmedi=0;
+
+    rows.forEach(tr=>{
+        if(tr.style.color==="green") geldi++;
+        if(tr.style.color==="red") gelmedi++;
     });
 
-    const data = await res.json();
+    document.getElementById("count").textContent =
+        "Geldi: "+geldi+" | Gelmedi: "+gelmedi;
 
-    if (data.status === "ok") {
-        window.location.href = "/journal";
-    } else {
-        alert("Login yalnys");
-    }
+    document.getElementById("total").textContent =
+        "Jemi: "+rows.length;
 }
+
+function saveStatus(name,status){
+    let students=getStudents();
+    const key=getMonthKey();
+
+    students=students.map(s=>
+        s.name===name
+        ? {...s,["status_"+key]:status}
+        : s
+    );
+
+    saveStudents(students);
+}
+
+function removeStudent(name){
+    let students=getStudents()
+        .filter(s=>s.name!==name);
+    saveStudents(students);
+}
+
+function addRow(name,group,status=""){
+    const list=document.getElementById("studentList");
+    const tr=document.createElement("tr");
+
+    const tdNum=document.createElement("td");
+    tdNum.textContent=list.children.length+1;
+
+    const tdName=document.createElement("td");
+    tdName.textContent=name;
+
+    const tdGroup=document.createElement("td");
+    tdGroup.textContent=group;
+
+    const tdAttend=document.createElement("td");
+
+    if(status==="yes") tr.style.color="green";
+    if(status==="no") tr.style.color="red";
+
+    const btnYes=document.createElement("button");
+    btnYes.textContent="Geldi";
+    btnYes.onclick=()=>{
+        tr.style.color="green";
+        saveStatus(name,"yes");
+        updateCount();
+    };
+
+    const btnNo=document.createElement("button");
+    btnNo.textContent="Gelmedi";
+    btnNo.onclick=()=>{
+        tr.style.color="red";
+        saveStatus(name,"no");
+        updateCount();
+    };
+
+    tdAttend.append(btnYes,btnNo);
+
+    const tdCtrl=document.createElement("td");
+
+    const btnDelete=document.createElement("button");
+    btnDelete.textContent="Poz";
+    btnDelete.onclick=()=>{
+        tr.remove();
+        removeStudent(name);
+        renumber();
+        updateCount();
+    };
+
+    tdCtrl.appendChild(btnDelete);
+
+    tr.append(tdNum,tdName,tdGroup,tdAttend,tdCtrl);
+    list.appendChild(tr);
+}
+
+function addStudent(){
+    const name=document.getElementById("name").value.trim();
+    const group=document.getElementById("group").value.trim();
+
+    if(!name||!group) return;
+
+    let students=getStudents();
+    students.push({name,group});
+    saveStudents(students);
+
+    addRow(name,group);
+
+    document.getElementById("name").value="";
+    document.getElementById("group").value="";
+
+    updateCount();
+}
+
+function loadStudents(){
+    const students=getStudents();
+    const key=getMonthKey();
+
+    students.forEach(s=>{
+        addRow(
+            s.name,
+            s.group,
+            s["status_"+key] || ""
+        );
+    });
+
+    updateCount();
+}
+
+loadStudents();
+
 </script>
+
+</body>
+</html>

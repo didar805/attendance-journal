@@ -11,6 +11,11 @@
 
 <br><br>
 
+Aý saýla:
+<select id="monthSelect" onchange="reloadForMonth()"></select>
+
+<br><br>
+
 <h4 id="count">Geldi: 0 | Gelmedi: 0</h4>
 <h4 id="total">Jemi: 0</h4>
 
@@ -30,9 +35,27 @@
 
 <script>
 
+const months = [
+"Yanwar","Fewral","Mart","Aprel","Maý","Iýun",
+"Iýul","Awgust","Sentýabr","Oktýabr","Noýabr","Dekabr"
+];
+
+function initMonthSelect(){
+    const sel = document.getElementById("monthSelect");
+    months.forEach((m,i)=>{
+        const op = document.createElement("option");
+        op.value = i+1;
+        op.textContent = m;
+        sel.appendChild(op);
+    });
+
+    sel.value = new Date().getMonth()+1;
+}
+
 function getMonthKey(){
-    const d = new Date();
-    return d.getFullYear()+"_"+(d.getMonth()+1);
+    const y = new Date().getFullYear();
+    const m = document.getElementById("monthSelect").value;
+    return y + "_" + m;
 }
 
 function getStudents(){
@@ -146,15 +169,16 @@ function addStudent(){
     students.push({name,group});
     saveStudents(students);
 
-    addRow(name,group);
+    reloadForMonth();
 
     document.getElementById("name").value="";
     document.getElementById("group").value="";
-
-    updateCount();
 }
 
-function loadStudents(){
+function reloadForMonth(){
+    const list=document.getElementById("studentList");
+    list.innerHTML="";
+
     const students=getStudents();
     const key=getMonthKey();
 
@@ -169,7 +193,8 @@ function loadStudents(){
     updateCount();
 }
 
-loadStudents();
+initMonthSelect();
+reloadForMonth();
 
 </script>
 

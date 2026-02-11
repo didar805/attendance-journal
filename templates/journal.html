@@ -43,15 +43,21 @@ async function loadStudents() {
         const res = await fetch(JOURNAL_URL);
         const data = await res.json();
 
-        if (data.students) {
-            data.students.forEach((s) => {
-                if (!deleted.includes(s.name))
-                    addRow(list, s.name, s.group);
-            });
-        }
+        console.log(data); // DEBUG
+
+        const students = data.students || data.Students || [];
+
+        students.forEach((s) => {
+            const name = s.name || s.Name || s.studentName;
+            const group = s.group || s.Group || "";
+
+            if (name && !deleted.includes(name)) {
+                addRow(list, name, group);
+            }
+        });
 
     } catch (e) {
-        console.log("API okunmady");
+        console.log("API error:", e);
     }
 
     const extra = JSON.parse(localStorage.getItem("extraStudents") || "[]");
@@ -82,7 +88,7 @@ function addRow(list, name, group) {
     const tdButtons = document.createElement("td");
 
     tdName.textContent = name;
-    tdGroup.textContent = group;
+    tdGroup.textContent = group || "-";
 
     const savedStatus = localStorage.getItem("att_" + name);
     if (savedStatus === "yes") tr.style.color = "green";

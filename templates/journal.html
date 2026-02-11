@@ -130,6 +130,8 @@ function addStudent() {
         tr.style.color = "green";
         localStorage.setItem(name, "yes");
         updateCount();
+        document.getElementById("name").value = "";
+document.getElementById("group").value = "";
     };
 
     const btnNo = document.createElement("button");
@@ -158,4 +160,5 @@ loadStudents();
 
 </body>
 </html>
+
 

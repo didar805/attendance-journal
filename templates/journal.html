@@ -2,7 +2,15 @@
 <html>
 <body>
 
-<h3>Studentler</h3>
+<h3>Žurnallar</h3>
+<input id="journalName" placeholder="Žurnal ady">
+<button onclick="addJournal()">Žurnal goş</button>
+
+<br><br>
+
+<select id="journalSelect" onchange="loadStudents()"></select>
+
+<hr>
 
 <h3>Student goş</h3>
 <input id="name" placeholder="Ady">
@@ -29,78 +37,116 @@
 </table>
 
 <script>
-function getStudents() {
-    return JSON.parse(localStorage.getItem("students") || "[]");
+
+function getJournalKey(){
+    const select = document.getElementById("journalSelect");
+    if(!select.value) return "journal_default";
+    return "journal_" + select.value;
 }
 
-function saveStudents(list) {
-    localStorage.setItem("students", JSON.stringify(list));
+function getStudents(){
+    return JSON.parse(localStorage.getItem(getJournalKey()) || "[]");
 }
 
-function renumber() {
+function saveStudents(list){
+    localStorage.setItem(getJournalKey(), JSON.stringify(list));
+}
+
+function addJournal(){
+    const name = document.getElementById("journalName").value.trim();
+    if(!name) return;
+
+    let journals = JSON.parse(localStorage.getItem("journals") || "[]");
+    journals.push(name);
+    localStorage.setItem("journals", JSON.stringify(journals));
+
+    document.getElementById("journalName").value="";
+    loadJournals();
+}
+
+function loadJournals(){
+    const select = document.getElementById("journalSelect");
+    select.innerHTML = "";
+
+    let journals = JSON.parse(localStorage.getItem("journals") || "[]");
+
+    if(journals.length === 0){
+        journals = ["Esasy žurnal"];
+        localStorage.setItem("journals", JSON.stringify(journals));
+    }
+
+    journals.forEach(j=>{
+        const op = document.createElement("option");
+        op.value = j;
+        op.textContent = j;
+        select.appendChild(op);
+    });
+
+    loadStudents();
+}
+
+function renumber(){
     document.querySelectorAll("#studentList tr")
-        .forEach((tr, i) => tr.children[0].textContent = i + 1);
+        .forEach((tr,i)=>tr.children[0].textContent=i+1);
 }
 
-function updateCount() {
-    const rows = document.querySelectorAll("#studentList tr");
-    let geldi = 0;
-    let gelmedi = 0;
+function updateCount(){
+    const rows=document.querySelectorAll("#studentList tr");
+    let geldi=0, gelmedi=0;
 
-    rows.forEach(tr => {
-        if (tr.style.color === "green") geldi++;
-        if (tr.style.color === "red") gelmedi++;
+    rows.forEach(tr=>{
+        if(tr.style.color==="green") geldi++;
+        if(tr.style.color==="red") gelmedi++;
     });
 
     document.getElementById("count").textContent =
-        "Geldi: " + geldi + " | Gelmedi: " + gelmedi;
+        "Geldi: "+geldi+" | Gelmedi: "+gelmedi;
 
     document.getElementById("total").textContent =
-        "Jemi: " + rows.length;
+        "Jemi: "+rows.length;
 }
 
-function addRow(name, group, status = "") {
-    const list = document.getElementById("studentList");
+function addRow(name,group,status=""){
+    const list=document.getElementById("studentList");
+    const tr=document.createElement("tr");
 
-    const tr = document.createElement("tr");
+    const tdNum=document.createElement("td");
+    tdNum.textContent=list.children.length+1;
 
-    const tdNum = document.createElement("td");
-    tdNum.textContent = list.children.length + 1;
+    const tdName=document.createElement("td");
+    tdName.textContent=name;
 
-    const tdName = document.createElement("td");
-    tdName.textContent = name;
+    const tdGroup=document.createElement("td");
+    tdGroup.textContent=group;
 
-    const tdGroup = document.createElement("td");
-    tdGroup.textContent = group;
+    const tdAttend=document.createElement("td");
 
-    const tdAttend = document.createElement("td");
+    if(status==="yes") tr.style.color="green";
+    if(status==="no") tr.style.color="red";
 
-    if (status === "yes") tr.style.color = "green";
-    if (status === "no") tr.style.color = "red";
-
-    const btnYes = document.createElement("button");
-    btnYes.textContent = "Geldi";
-    btnYes.onclick = () => {
-        tr.style.color = "green";
-        saveStatus(name, "yes");
+    const btnYes=document.createElement("button");
+    btnYes.textContent="Geldi";
+    btnYes.onclick=()=>{
+        tr.style.color="green";
+        saveStatus(name,"yes");
         updateCount();
     };
 
-    const btnNo = document.createElement("button");
-    btnNo.textContent = "Gelmedi";
-    btnNo.onclick = () => {
-        tr.style.color = "red";
-        saveStatus(name, "no");
+    const btnNo=document.createElement("button");
+    btnNo.textContent="Gelmedi";
+    btnNo.onclick=()=>{
+        tr.style.color="red";
+        saveStatus(name,"no");
         updateCount();
     };
 
-    tdAttend.append(btnYes, btnNo);
+    tdAttend.append(btnYes,btnNo);
 
-    const tdCtrl = document.createElement("td");
+    const tdCtrl=document.createElement("td");
 
-    const btnDelete = document.createElement("button");
-    btnDelete.textContent = "Poz";
-    btnDelete.onclick = () => {
+    const btnDelete=document.createElement("button");
+    btnDelete.textContent="Poz";
+    btnDelete.onclick=()=>{
         tr.remove();
         removeStudent(name);
         renumber();
@@ -109,51 +155,54 @@ function addRow(name, group, status = "") {
 
     tdCtrl.appendChild(btnDelete);
 
-    tr.append(tdNum, tdName, tdGroup, tdAttend, tdCtrl);
+    tr.append(tdNum,tdName,tdGroup,tdAttend,tdCtrl);
     list.appendChild(tr);
 }
 
-function saveStatus(name, status) {
-    let students = getStudents();
-    students = students.map(s =>
-        s.name === name ? { ...s, status } : s
+function saveStatus(name,status){
+    let students=getStudents();
+    students=students.map(s=>
+        s.name===name?{...s,status}:s
     );
     saveStudents(students);
 }
 
-function removeStudent(name) {
-    let students = getStudents();
-    students = students.filter(s => s.name !== name);
+function removeStudent(name){
+    let students=getStudents()
+        .filter(s=>s.name!==name);
     saveStudents(students);
 }
 
-function addStudent() {
-    const name = document.getElementById("name").value.trim();
-    const group = document.getElementById("group").value.trim();
+function addStudent(){
+    const name=document.getElementById("name").value.trim();
+    const group=document.getElementById("group").value.trim();
 
-    if (!name || !group) return;
+    if(!name||!group) return;
 
-    let students = getStudents();
-    students.push({ name, group, status: "" });
+    let students=getStudents();
+    students.push({name,group,status:""});
     saveStudents(students);
 
-    addRow(name, group, "");
+    addRow(name,group);
 
-    document.getElementById("name").value = "";
-    document.getElementById("group").value = "";
+    document.getElementById("name").value="";
+    document.getElementById("group").value="";
 
     updateCount();
 }
 
-function loadStudents() {
-    const students = getStudents();
-    students.forEach(s =>
-        addRow(s.name, s.group, s.status)
-    );
+function loadStudents(){
+    const list=document.getElementById("studentList");
+    list.innerHTML="";
+
+    const students=getStudents();
+    students.forEach(s=>addRow(s.name,s.group,s.status));
+
     updateCount();
 }
 
-loadStudents();
+loadJournals();
+
 </script>
 
 </body>

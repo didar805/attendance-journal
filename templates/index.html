@@ -6,10 +6,15 @@
 
 <input id="journalName" placeholder="Žurnal ady">
 <button onclick="addJournal()">Žurnal goş</button>
-
 <br><br>
 
 <select id="journalSelect" onchange="loadStudents()"></select>
+
+<hr>
+
+<h3>Sapak güni goş</h3>
+<input id="lessonDate" type="date">
+<button onclick="addLesson()">Gün goş</button>
 
 <hr>
 
@@ -20,16 +25,14 @@
 
 <br><br>
 
-<h4 id="count">Geldi: 0 | Gelmedi: 0</h4>
 <h4 id="total">Jemi: 0</h4>
 
 <table border="1" width="100%">
 <thead>
-<tr>
+<tr id="tableHead">
 <th>#</th>
 <th>Student</th>
 <th>Topar</th>
-<th>Gatnaşygy</th>
 <th>Dolandyryş</th>
 </tr>
 </thead>
@@ -39,132 +42,151 @@
 
 <script>
 
-function getJournalKey(){
-    return "journal_" + document.getElementById("journalSelect").value;
+function journalKey(){
+    return "journal_"+document.getElementById("journalSelect").value;
+}
+
+function lessonsKey(){
+    return journalKey()+"_lessons";
 }
 
 function getStudents(){
-    return JSON.parse(localStorage.getItem(getJournalKey()) || "[]");
+    return JSON.parse(localStorage.getItem(journalKey())||"[]");
 }
 
 function saveStudents(list){
-    localStorage.setItem(getJournalKey(), JSON.stringify(list));
+    localStorage.setItem(journalKey(),JSON.stringify(list));
+}
+
+function getLessons(){
+    return JSON.parse(localStorage.getItem(lessonsKey())||"[]");
+}
+
+function saveLessons(list){
+    localStorage.setItem(lessonsKey(),JSON.stringify(list));
 }
 
 function addJournal(){
-    const name = document.getElementById("journalName").value.trim();
+    const name=document.getElementById("journalName").value.trim();
     if(!name) return;
 
-    let journals = JSON.parse(localStorage.getItem("journals")||"[]");
-    journals.push(name);
-    localStorage.setItem("journals", JSON.stringify(journals));
+    let j=JSON.parse(localStorage.getItem("journals")||"[]");
+    j.push(name);
+    localStorage.setItem("journals",JSON.stringify(j));
 
     document.getElementById("journalName").value="";
     loadJournals();
 }
 
 function loadJournals(){
-    const select = document.getElementById("journalSelect");
-    select.innerHTML="";
+    const sel=document.getElementById("journalSelect");
+    sel.innerHTML="";
 
-    const journals = JSON.parse(localStorage.getItem("journals")||"[]");
+    let j=JSON.parse(localStorage.getItem("journals")||"[]");
 
-    journals.forEach(j=>{
+    j.forEach(x=>{
         const op=document.createElement("option");
-        op.value=j;
-        op.textContent=j;
-        select.appendChild(op);
+        op.value=x;
+        op.textContent=x;
+        sel.appendChild(op);
     });
 
     loadStudents();
 }
 
-function renumber(){
-    document.querySelectorAll("#studentList tr")
-        .forEach((tr,i)=>tr.children[0].textContent=i+1);
+function addLesson(){
+    const d=document.getElementById("lessonDate").value;
+    if(!d) return;
+
+    let lessons=getLessons();
+    if(!lessons.includes(d)){
+        lessons.push(d);
+        saveLessons(lessons);
+    }
+
+    loadStudents();
 }
 
-function updateCount(){
-    const rows=document.querySelectorAll("#studentList tr");
-    let geldi=0, gelmedi=0;
+function buildHeader(){
+    const head=document.getElementById("tableHead");
+    head.innerHTML="<th>#</th><th>Student</th><th>Topar</th>";
 
-    rows.forEach(tr=>{
-        if(tr.style.color==="green") geldi++;
-        if(tr.style.color==="red") gelmedi++;
+    const lessons=getLessons();
+
+    lessons.forEach(d=>{
+        const th=document.createElement("th");
+        th.textContent=d;
+        head.appendChild(th);
     });
 
-    document.getElementById("count").textContent =
-        "Geldi: "+geldi+" | Gelmedi: "+gelmedi;
-
-    document.getElementById("total").textContent =
-        "Jemi: "+rows.length;
+    const thCtrl=document.createElement("th");
+    thCtrl.textContent="Dolandyryş";
+    head.appendChild(thCtrl);
 }
 
-function addRow(name,group,status=""){
+function addRow(student,index){
     const list=document.getElementById("studentList");
+    const lessons=getLessons();
+
     const tr=document.createElement("tr");
 
     const tdNum=document.createElement("td");
-    tdNum.textContent=list.children.length+1;
+    tdNum.textContent=index+1;
 
     const tdName=document.createElement("td");
-    tdName.textContent=name;
+    tdName.textContent=student.name;
 
     const tdGroup=document.createElement("td");
-    tdGroup.textContent=group;
+    tdGroup.textContent=student.group;
 
-    const tdAttend=document.createElement("td");
+    tr.append(tdNum,tdName,tdGroup);
 
-    if(status==="yes") tr.style.color="green";
-    if(status==="no") tr.style.color="red";
+    lessons.forEach(date=>{
+        const td=document.createElement("td");
 
-    const btnYes=document.createElement("button");
-    btnYes.textContent="Geldi";
-    btnYes.onclick=()=>{
-        tr.style.color="green";
-        saveStatus(name,"yes");
-        updateCount();
-    };
+        const btnYes=document.createElement("button");
+        btnYes.textContent="✔";
+        btnYes.onclick=()=>{
+            student.att=student.att||{};
+            student.att[date]="yes";
+            saveStudents(getStudents());
+            td.style.background="lightgreen";
+        };
 
-    const btnNo=document.createElement("button");
-    btnNo.textContent="Gelmedi";
-    btnNo.onclick=()=>{
-        tr.style.color="red";
-        saveStatus(name,"no");
-        updateCount();
-    };
+        const btnNo=document.createElement("button");
+        btnNo.textContent="✖";
+        btnNo.onclick=()=>{
+            student.att=student.att||{};
+            student.att[date]="no";
+            saveStudents(getStudents());
+            td.style.background="salmon";
+        };
 
-    tdAttend.append(btnYes,btnNo);
+        if(student.att && student.att[date]=="yes")
+            td.style.background="lightgreen";
+
+        if(student.att && student.att[date]=="no")
+            td.style.background="salmon";
+
+        td.append(btnYes,btnNo);
+        tr.appendChild(td);
+    });
 
     const tdCtrl=document.createElement("td");
 
-    const btnDelete=document.createElement("button");
-    btnDelete.textContent="Poz";
-    btnDelete.onclick=()=>{
-        tr.remove();
-        removeStudent(name);
-        renumber();
-        updateCount();
+    const del=document.createElement("button");
+    del.textContent="Poz";
+    del.onclick=()=>{
+        let s=getStudents();
+        s.splice(index,1);
+        saveStudents(s);
+        loadStudents();
     };
 
-    tdCtrl.appendChild(btnDelete);
+    tdCtrl.appendChild(del);
+    tr.appendChild(tdCtrl);
 
-    tr.append(tdNum,tdName,tdGroup,tdAttend,tdCtrl);
     list.appendChild(tr);
-}
-
-function saveStatus(name,status){
-    let students=getStudents();
-    students=students.map(s=>
-        s.name===name?{...s,status}:s
-    );
-    saveStudents(students);
-}
-
-function removeStudent(name){
-    let students=getStudents()
-        .filter(s=>s.name!==name);
-    saveStudents(students);
 }
 
 function addStudent(){
@@ -173,26 +195,28 @@ function addStudent(){
 
     if(!name||!group) return;
 
-    let students=getStudents();
-    students.push({name,group,status:""});
-    saveStudents(students);
-
-    addRow(name,group);
+    let s=getStudents();
+    s.push({name,group,att:{}});
+    saveStudents(s);
 
     document.getElementById("name").value="";
     document.getElementById("group").value="";
 
-    updateCount();
+    loadStudents();
 }
 
 function loadStudents(){
+    buildHeader();
+
     const list=document.getElementById("studentList");
     list.innerHTML="";
 
     const students=getStudents();
-    students.forEach(s=>addRow(s.name,s.group,s.status));
 
-    updateCount();
+    students.forEach((s,i)=>addRow(s,i));
+
+    document.getElementById("total").textContent =
+        "Jemi: "+students.length;
 }
 
 loadJournals();

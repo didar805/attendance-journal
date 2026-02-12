@@ -2,17 +2,21 @@
 <html>
 <body>
 
-<h3>Studentler</h3>
+<h3>Žurnallar</h3>
+
+<input id="journalName" placeholder="Žurnal ady">
+<button onclick="addJournal()">Žurnal goş</button>
+
+<br><br>
+
+<select id="journalSelect" onchange="loadStudents()"></select>
+
+<hr>
 
 <h3>Student goş</h3>
 <input id="name" placeholder="Ady">
 <input id="group" placeholder="Topary">
 <button onclick="addStudent()">Goş</button>
-
-<br><br>
-
-Aý saýla:
-<select id="monthSelect" onchange="reloadForMonth()"></select>
 
 <br><br>
 
@@ -35,35 +39,44 @@ Aý saýla:
 
 <script>
 
-const months = [
-"Yanwar","Fewral","Mart","Aprel","Maý","Iýun",
-"Iýul","Awgust","Sentýabr","Oktýabr","Noýabr","Dekabr"
-];
-
-function initMonthSelect(){
-    const sel = document.getElementById("monthSelect");
-    months.forEach((m,i)=>{
-        const op = document.createElement("option");
-        op.value = i+1;
-        op.textContent = m;
-        sel.appendChild(op);
-    });
-
-    sel.value = new Date().getMonth()+1;
-}
-
-function getMonthKey(){
-    const y = new Date().getFullYear();
-    const m = document.getElementById("monthSelect").value;
-    return y + "_" + m;
+function getJournalKey(){
+    return "journal_" + document.getElementById("journalSelect").value;
 }
 
 function getStudents(){
-    return JSON.parse(localStorage.getItem("students") || "[]");
+    return JSON.parse(localStorage.getItem(getJournalKey()) || "[]");
 }
 
 function saveStudents(list){
-    localStorage.setItem("students", JSON.stringify(list));
+    localStorage.setItem(getJournalKey(), JSON.stringify(list));
+}
+
+function addJournal(){
+    const name = document.getElementById("journalName").value.trim();
+    if(!name) return;
+
+    let journals = JSON.parse(localStorage.getItem("journals")||"[]");
+    journals.push(name);
+    localStorage.setItem("journals", JSON.stringify(journals));
+
+    document.getElementById("journalName").value="";
+    loadJournals();
+}
+
+function loadJournals(){
+    const select = document.getElementById("journalSelect");
+    select.innerHTML="";
+
+    const journals = JSON.parse(localStorage.getItem("journals")||"[]");
+
+    journals.forEach(j=>{
+        const op=document.createElement("option");
+        op.value=j;
+        op.textContent=j;
+        select.appendChild(op);
+    });
+
+    loadStudents();
 }
 
 function renumber(){
@@ -85,25 +98,6 @@ function updateCount(){
 
     document.getElementById("total").textContent =
         "Jemi: "+rows.length;
-}
-
-function saveStatus(name,status){
-    let students=getStudents();
-    const key=getMonthKey();
-
-    students=students.map(s=>
-        s.name===name
-        ? {...s,["status_"+key]:status}
-        : s
-    );
-
-    saveStudents(students);
-}
-
-function removeStudent(name){
-    let students=getStudents()
-        .filter(s=>s.name!==name);
-    saveStudents(students);
 }
 
 function addRow(name,group,status=""){
@@ -159,6 +153,20 @@ function addRow(name,group,status=""){
     list.appendChild(tr);
 }
 
+function saveStatus(name,status){
+    let students=getStudents();
+    students=students.map(s=>
+        s.name===name?{...s,status}:s
+    );
+    saveStudents(students);
+}
+
+function removeStudent(name){
+    let students=getStudents()
+        .filter(s=>s.name!==name);
+    saveStudents(students);
+}
+
 function addStudent(){
     const name=document.getElementById("name").value.trim();
     const group=document.getElementById("group").value.trim();
@@ -166,35 +174,28 @@ function addStudent(){
     if(!name||!group) return;
 
     let students=getStudents();
-    students.push({name,group});
+    students.push({name,group,status:""});
     saveStudents(students);
 
-    reloadForMonth();
+    addRow(name,group);
 
     document.getElementById("name").value="";
     document.getElementById("group").value="";
-}
-
-function reloadForMonth(){
-    const list=document.getElementById("studentList");
-    list.innerHTML="";
-
-    const students=getStudents();
-    const key=getMonthKey();
-
-    students.forEach(s=>{
-        addRow(
-            s.name,
-            s.group,
-            s["status_"+key] || ""
-        );
-    });
 
     updateCount();
 }
 
-initMonthSelect();
-reloadForMonth();
+function loadStudents(){
+    const list=document.getElementById("studentList");
+    list.innerHTML="";
+
+    const students=getStudents();
+    students.forEach(s=>addRow(s.name,s.group,s.status));
+
+    updateCount();
+}
+
+loadJournals();
 
 </script>
 

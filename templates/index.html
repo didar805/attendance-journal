@@ -58,11 +58,10 @@
 
 <script>
 
-/* ===== KEYS ===== */
+/* ===== STORAGE KEYS ===== */
 function journalKey(){
-    return "journal_" + document.getElementById("journalSelect").value;
+    return "journal_" + journalSelect.value;
 }
-
 function lessonsKey(){
     return journalKey() + "_lessons";
 }
@@ -71,36 +70,31 @@ function lessonsKey(){
 function getStudents(){
     return JSON.parse(localStorage.getItem(journalKey()) || "[]");
 }
-
 function saveStudents(list){
     localStorage.setItem(journalKey(), JSON.stringify(list));
 }
-
 function getLessons(){
     return JSON.parse(localStorage.getItem(lessonsKey()) || "[]");
 }
-
 function saveLessons(list){
     localStorage.setItem(lessonsKey(), JSON.stringify(list));
 }
 
 /* ===== JOURNAL ===== */
 function addJournal(){
-    let name = document.getElementById("journalName").value.trim();
+    let name = journalName.value.trim();
     if(!name) return;
 
     let j = JSON.parse(localStorage.getItem("journals")||"[]");
     if(!j.includes(name)) j.push(name);
 
     localStorage.setItem("journals", JSON.stringify(j));
-    document.getElementById("journalName").value="";
+    journalName.value="";
     loadJournals();
 }
 
 function loadJournals(){
-    let sel = document.getElementById("journalSelect");
-    sel.innerHTML="";
-
+    journalSelect.innerHTML="";
     let j = JSON.parse(localStorage.getItem("journals")||"[]");
 
     if(j.length===0){
@@ -112,14 +106,14 @@ function loadJournals(){
         let o=document.createElement("option");
         o.value=x;
         o.textContent=x;
-        sel.appendChild(o);
+        journalSelect.appendChild(o);
     });
 
     loadStudents();
 }
 
 function deleteJournal(){
-    let name=document.getElementById("journalSelect").value;
+    let name=journalSelect.value;
     let j=JSON.parse(localStorage.getItem("journals")||"[]");
     j=j.filter(x=>x!==name);
     localStorage.setItem("journals",JSON.stringify(j));
@@ -142,9 +136,9 @@ function clearAll(){
     }
 }
 
-/* ===== LESSON ===== */
+/* ===== LESSON ADD ===== */
 function addLesson(){
-    let d=document.getElementById("lessonDate").value;
+    let d=lessonDate.value;
     if(!d) return;
 
     let count=parseInt(prompt("Näçe sapak bar?"));
@@ -162,17 +156,15 @@ function addLesson(){
 
 /* ===== HEADER ===== */
 function buildHeader(){
-    let head=document.getElementById("tableHead");
-
-    head.innerHTML="<th>#</th><th>Student</th><th>Topar</th>";
+    tableHead.innerHTML="<th>#</th><th>Student</th><th>Topar</th>";
 
     getLessons().forEach(l=>{
         let th=document.createElement("th");
         th.textContent=l.date;
-        head.appendChild(th);
+        tableHead.appendChild(th);
     });
 
-    head.innerHTML+="<th>Dolandyryş</th>";
+    tableHead.innerHTML+="<th>Dolandyryş</th>";
 }
 
 /* ===== ROW ===== */
@@ -187,22 +179,23 @@ function addRow(student,index){
     getLessons().forEach(lesson=>{
         let td=document.createElement("td");
 
-        student.att=student.att||{};
-        student.att[lesson.date]=student.att[lesson.date]||[];
+        student.att = student.att || {};
+        student.att[lesson.date] =
+            student.att[lesson.date] || [];
 
         for(let i=0;i<lesson.count;i++){
             let btn=document.createElement("button");
 
-            btn.textContent=
-                student.att[lesson.date][i]?"✔":"✖";
+            btn.textContent =
+                student.att[lesson.date][i] ? "✔" : "✖";
 
             btn.onclick=()=>{
                 let s=getStudents();
                 s[index].att=s[index].att||{};
-                s[index].att[lesson.date]=
+                s[index].att[lesson.date] =
                     s[index].att[lesson.date]||[];
 
-                s[index].att[lesson.date][i]=
+                s[index].att[lesson.date][i] =
                     !s[index].att[lesson.date][i];
 
                 saveStudents(s);
@@ -229,22 +222,21 @@ function addRow(student,index){
     tdCtrl.appendChild(del);
     tr.appendChild(tdCtrl);
 
-    document.getElementById("studentList").appendChild(tr);
+    studentList.appendChild(tr);
 }
 
 /* ===== ADD STUDENT ===== */
 function addStudent(){
-    let name=document.getElementById("name").value.trim();
-    let group=document.getElementById("group").value.trim();
-    if(!name||!group) return;
+    let nm=name.value.trim();
+    let gr=group.value.trim();
+    if(!nm||!gr) return;
 
     let s=getStudents();
-    s.push({name,group,att:{}});
+    s.push({name:nm,group:gr,att:{}});
     saveStudents(s);
 
-    document.getElementById("name").value="";
-    document.getElementById("group").value="";
-
+    name.value="";
+    group.value="";
     loadStudents();
 }
 
@@ -273,25 +265,29 @@ function buildDailyStats(){
         Bölekleýin: ${partial}</div>`;
     });
 
-    document.getElementById("dailyStats").innerHTML=html;
+    dailyStats.innerHTML=html;
 }
 
 /* ===== RASPISANIYA ===== */
 function addSchedule(){
-    let d=document.getElementById("scheduleDate").value;
-    let c=parseInt(document.getElementById("lessonCount").value);
+    let d=scheduleDate.value;
+    let c=parseInt(lessonCount.value);
     if(!d||!c) return;
 
     let sc=JSON.parse(localStorage.getItem("schedule")||"{}");
     sc[d]=c;
     localStorage.setItem("schedule",JSON.stringify(sc));
 
-    /* žurnala hem goş */
     let lessons=getLessons();
-    if(!lessons.find(x=>x.date===d)){
+    let found=lessons.find(x=>x.date===d);
+
+    if(found){
+        found.count=c;
+    }else{
         lessons.push({date:d,count:c});
-        saveLessons(lessons);
     }
+
+    saveLessons(lessons);
 
     showSchedule();
     loadStudents();
@@ -305,19 +301,18 @@ function showSchedule(){
         html+=`${d} — ${sc[d]} sapak<br>`;
     });
 
-    document.getElementById("scheduleList").innerHTML=html;
+    scheduleList.innerHTML=html;
 }
 
 /* ===== LOAD ===== */
 function loadStudents(){
     buildHeader();
-    document.getElementById("studentList").innerHTML="";
+    studentList.innerHTML="";
 
     let students=getStudents();
     students.forEach((s,i)=>addRow(s,i));
 
-    document.getElementById("total").textContent=
-        "Jemi: "+students.length;
+    total.textContent="Jemi: "+students.length;
 
     buildDailyStats();
 }

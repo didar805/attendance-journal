@@ -148,7 +148,7 @@ function addLesson(){
     loadStudents();
 }
 
-/* ==== TABLE HEADER ==== */
+/* ==== HEADER ==== */
 function buildHeader(){
     const head = document.getElementById("tableHead");
 
@@ -251,12 +251,12 @@ function addStudent(){
     loadStudents();
 }
 
-/* ==== DAILY ANALYSIS ==== */
+/* ==== CURRENT JOURNAL ANALYSIS ==== */
 function buildDailyStats(){
     const lessons = getLessons();
     const students = getStudents();
 
-    let html = "<h3>Gün boýunça hasap:</h3>";
+    let html = "<h3>Saýlanan žurnal boýunça:</h3>";
 
     lessons.forEach(date=>{
         let yesAll = 0;
@@ -269,12 +269,39 @@ function buildDailyStats(){
             if(s.att[date] === "no") noAll++;
         });
 
-        html += `
-        <div>
-            <b>${date}</b> →
-            Gelen: ${yesAll},
-            Gelmedi: ${noAll}
-        </div>`;
+        html += `<div><b>${date}</b> → Gelen: ${yesAll}, Gelmedi: ${noAll}</div>`;
+    });
+
+    document.getElementById("dailyStats").innerHTML = html;
+}
+
+/* ==== GLOBAL ANALYSIS ==== */
+function buildGlobalDailyStats(){
+    let journals = JSON.parse(localStorage.getItem("journals") || "[]");
+
+    let result = {};
+
+    journals.forEach(journal=>{
+        let students = JSON.parse(localStorage.getItem("journal_"+journal) || "[]");
+        let lessons = JSON.parse(localStorage.getItem("journal_"+journal+"_lessons") || "[]");
+
+        lessons.forEach(date=>{
+            if(!result[date]) result[date] = {yes:0,no:0};
+
+            students.forEach(s=>{
+                if(!s.att) return;
+
+                if(s.att[date] === "yes") result[date].yes++;
+                if(s.att[date] === "no") result[date].no++;
+            });
+        });
+    });
+
+    let html = document.getElementById("dailyStats").innerHTML;
+    html += "<br><h3>Hemmäniň jemi:</h3>";
+
+    Object.keys(result).forEach(date=>{
+        html += `<div><b>${date}</b> → Gelen: ${result[date].yes}, Gelmedi: ${result[date].no}</div>`;
     });
 
     document.getElementById("dailyStats").innerHTML = html;
@@ -294,6 +321,7 @@ function loadStudents(){
         "Jemi: " + students.length;
 
     buildDailyStats();
+    buildGlobalDailyStats();
 }
 
 loadJournals();

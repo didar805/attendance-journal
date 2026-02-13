@@ -3,7 +3,6 @@
 <body>
 
 <h3>Žurnallar</h3>
-
 <input id="journalName" placeholder="Žurnal ady">
 <button onclick="addJournal()">Žurnal goş</button>
 <br><br>
@@ -40,6 +39,9 @@
 </thead>
 <tbody id="studentList"></tbody>
 </table>
+
+<h3>Gün boýunça hasap</h3>
+<div id="dailyStats"></div>
 
 <script>
 
@@ -259,6 +261,40 @@ function addStudent(){
     loadStudents();
 }
 
+function calcDailyStats(){
+    const students = getStudents();
+    const lessons = getLessons();
+    const statsDiv = document.getElementById("dailyStats");
+
+    statsDiv.innerHTML = "";
+
+    lessons.forEach(day=>{
+        let geldi = 0;
+        let gelmedi = 0;
+        let partial = 0;
+
+        students.forEach(s=>{
+            if(!s.att || !s.att[day]){
+                gelmedi++;
+                return;
+            }
+
+            if(s.att[day] === "yes")
+                geldi++;
+            else if(s.att[day] === "no")
+                gelmedi++;
+        });
+
+        statsDiv.innerHTML += `
+            <div style="margin-bottom:10px">
+                <b>${day}</b><br>
+                Gelen: ${geldi}<br>
+                Gelmedi: ${gelmedi}
+            </div>
+        `;
+    });
+}
+
 function loadStudents(){
     buildHeader();
 
@@ -270,6 +306,8 @@ function loadStudents(){
 
     document.getElementById("total").textContent =
         "Jemi: " + students.length;
+
+    calcDailyStats();
 }
 
 loadJournals();

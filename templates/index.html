@@ -25,6 +25,18 @@
 
 <hr>
 
+<!-- ========= RASPISANIYA ========= -->
+<h3>📅 Raspisaniýa düzmek</h3>
+
+<input type="date" id="scheduleDate">
+<input type="number" id="lessonCount" placeholder="Näçe sapak bar">
+<button onclick="startSchedule()">Dowam et</button>
+
+<div id="scheduleEditor"></div>
+<div id="scheduleList"></div>
+
+<hr>
+
 <h3>Student goş</h3>
 <input id="name" placeholder="Ady">
 <input id="group" placeholder="Topary">
@@ -49,6 +61,7 @@
 
 <script>
 
+/* ===== KEYS ===== */
 function journalKey(){
     return "journal_" + document.getElementById("journalSelect").value;
 }
@@ -57,6 +70,7 @@ function lessonsKey(){
     return journalKey() + "_lessons";
 }
 
+/* ===== STORAGE ===== */
 function getStudents(){
     return JSON.parse(localStorage.getItem(journalKey()) || "[]");
 }
@@ -73,62 +87,92 @@ function saveLessons(list){
     localStorage.setItem(lessonsKey(), JSON.stringify(list));
 }
 
+/* ===== JOURNALS ===== */
 function addJournal(){
-    const name = document.getElementById("journalName").value.trim();
+    const name = journalName.value.trim();
     if(!name) return;
 
     let j = JSON.parse(localStorage.getItem("journals") || "[]");
     if(!j.includes(name)) j.push(name);
-    localStorage.setItem("journals", JSON.stringify(j));
 
-    document.getElementById("journalName").value = "";
+    localStorage.setItem("journals", JSON.stringify(j));
+    journalName.value = "";
     loadJournals();
 }
 
 function loadJournals(){
-    const sel = document.getElementById("journalSelect");
-    sel.innerHTML = "";
-
+    journalSelect.innerHTML = "";
     let j = JSON.parse(localStorage.getItem("journals") || "[]");
 
     j.forEach(x=>{
         const op = document.createElement("option");
         op.value = x;
         op.textContent = x;
-        sel.appendChild(op);
+        journalSelect.appendChild(op);
     });
 
     loadStudents();
 }
 
-function deleteJournal(){
-    const name = document.getElementById("journalSelect").value;
-    if(!name) return;
+/* ===== RASPISANIYA ===== */
 
-    let j = JSON.parse(localStorage.getItem("journals") || "[]");
-    j = j.filter(x => x !== name);
-    localStorage.setItem("journals", JSON.stringify(j));
+function startSchedule(){
+    const date = scheduleDate.value;
+    const count = parseInt(lessonCount.value);
 
-    localStorage.removeItem("journal_"+name);
-    localStorage.removeItem("journal_"+name+"_lessons");
+    if(!date || !count) return;
 
-    loadJournals();
-}
+    let html = "<h4>Sapaklary saýla:</h4>";
 
-function clearStudents(){
-    localStorage.removeItem(journalKey());
-    loadStudents();
-}
+    const journals = JSON.parse(localStorage.getItem("journals") || []);
 
-function clearAll(){
-    if(confirm("Hemmäni pozmalymy?")){
-        localStorage.clear();
-        location.reload();
+    for(let i=0;i<count;i++){
+        html += `<div>Sapak ${i+1}: <select id="lessonSel_${i}">`;
+
+        journals.forEach(j=>{
+            html += `<option value="${j}">${j}</option>`;
+        });
+
+        html += "</select></div>";
     }
+
+    html += `<button onclick="saveSchedule('${date}',${count})">
+                Raspisaniýany sakla
+             </button>`;
+
+    scheduleEditor.innerHTML = html;
 }
 
+function saveSchedule(date,count){
+    let sc = JSON.parse(localStorage.getItem("schedule") || "{}");
+
+    sc[date] = [];
+
+    for(let i=0;i<count;i++){
+        sc[date].push(
+            document.getElementById("lessonSel_"+i).value
+        );
+    }
+
+    localStorage.setItem("schedule", JSON.stringify(sc));
+    showSchedule();
+}
+
+function showSchedule(){
+    let sc = JSON.parse(localStorage.getItem("schedule") || "{}");
+
+    let html = "<h4>Raspisaniýa:</h4>";
+
+    Object.keys(sc).forEach(d=>{
+        html += `<b>${d}</b>: ` + sc[d].join(", ") + "<br>";
+    });
+
+    scheduleList.innerHTML = html;
+}
+
+/* ===== LESSONS ===== */
 function addLesson(){
-    const d = document.getElementById("lessonDate").value;
+    const d = lessonDate.value;
     if(!d) return;
 
     let lessons = getLessons();
@@ -140,57 +184,51 @@ function addLesson(){
     loadStudents();
 }
 
+/* ===== TABLE ===== */
 function buildHeader(){
-    const head = document.getElementById("tableHead");
-    head.innerHTML = "<th>#</th><th>Student</th><th>Topar</th>";
+    tableHead.innerHTML =
+        "<th>#</th><th>Student</th><th>Topar</th>";
 
-    const lessons = getLessons();
-
-    lessons.forEach(d=>{
-        const th = document.createElement("th");
-        th.textContent = d;
-        head.appendChild(th);
+    getLessons().forEach(d=>{
+        let th=document.createElement("th");
+        th.textContent=d;
+        tableHead.appendChild(th);
     });
 
-    const ctrl = document.createElement("th");
-    ctrl.textContent = "Dolandyryş";
-    head.appendChild(ctrl);
+    let ctrl=document.createElement("th");
+    ctrl.textContent="Dolandyryş";
+    tableHead.appendChild(ctrl);
 }
 
 function addRow(student,index){
-    const list = document.getElementById("studentList");
-    const lessons = getLessons();
+    const tr=document.createElement("tr");
 
-    const tr = document.createElement("tr");
-
-    tr.innerHTML =
+    tr.innerHTML=
         `<td>${index+1}</td>
          <td>${student.name}</td>
          <td>${student.group}</td>`;
 
-    lessons.forEach(date=>{
-        const td = document.createElement("td");
+    getLessons().forEach(date=>{
+        const td=document.createElement("td");
 
-        const yes = document.createElement("button");
-        yes.textContent = "✔";
-
-        yes.onclick = ()=>{
-            let s = getStudents();
-            s[index].att = s[index].att || {};
-            s[index].att[date] = "yes";
+        const yes=document.createElement("button");
+        yes.textContent="✔";
+        yes.onclick=()=>{
+            let s=getStudents();
+            s[index].att=s[index].att||{};
+            s[index].att[date]="yes";
             saveStudents(s);
-            td.style.background = "lightgreen";
+            td.style.background="lightgreen";
         };
 
-        const no = document.createElement("button");
-        no.textContent = "✖";
-
-        no.onclick = ()=>{
-            let s = getStudents();
-            s[index].att = s[index].att || {};
-            s[index].att[date] = "no";
+        const no=document.createElement("button");
+        no.textContent="✖";
+        no.onclick=()=>{
+            let s=getStudents();
+            s[index].att=s[index].att||{};
+            s[index].att[date]="no";
             saveStudents(s);
-            td.style.background = "salmon";
+            td.style.background="salmon";
         };
 
         if(student.att && student.att[date]=="yes")
@@ -202,13 +240,12 @@ function addRow(student,index){
         tr.appendChild(td);
     });
 
-    const tdCtrl = document.createElement("td");
+    const tdCtrl=document.createElement("td");
+    const del=document.createElement("button");
+    del.textContent="Poz";
 
-    const del = document.createElement("button");
-    del.textContent = "Poz";
-
-    del.onclick = ()=>{
-        let s = getStudents();
+    del.onclick=()=>{
+        let s=getStudents();
         s.splice(index,1);
         saveStudents(s);
         loadStudents();
@@ -217,39 +254,36 @@ function addRow(student,index){
     tdCtrl.appendChild(del);
     tr.appendChild(tdCtrl);
 
-    list.appendChild(tr);
+    studentList.appendChild(tr);
 }
 
+/* ===== STUDENTS ===== */
 function addStudent(){
-    const name = document.getElementById("name").value.trim();
-    const group = document.getElementById("group").value.trim();
+    const name=document.getElementById("name").value.trim();
+    const group=document.getElementById("group").value.trim();
     if(!name || !group) return;
 
-    let s = getStudents();
-    s.push({name, group, att:{}});
+    let s=getStudents();
+    s.push({name,group,att:{}});
     saveStudents(s);
 
-    document.getElementById("name").value = "";
-    document.getElementById("group").value = "";
-
+    name.value="";
+    group.value="";
     loadStudents();
 }
 
 function loadStudents(){
     buildHeader();
+    studentList.innerHTML="";
 
-    const list = document.getElementById("studentList");
-    list.innerHTML = "";
-
-    const students = getStudents();
-
+    const students=getStudents();
     students.forEach((s,i)=>addRow(s,i));
 
-    document.getElementById("total").textContent =
-        "Jemi: " + students.length;
+    total.textContent="Jemi: "+students.length;
 }
 
 loadJournals();
+showSchedule();
 
 </script>
 

@@ -65,7 +65,7 @@ body{font-family:Arial;margin:10px}
 
 <table border="1" width="100%">
 <thead>
-<tr id="tableHead">
+<tr>
 <th>#</th>
 <th>Student</th>
 <th>Topar</th>
@@ -77,11 +77,14 @@ body{font-family:Arial;margin:10px}
 
 <script>
 
-/* ===== JOURNAL ===== */
+/* ===== JOURNAL KEY ===== */
 function journalKey(){
-    return "journal_" + journalSelect.value;
+    const sel=document.getElementById("journalSelect");
+    if(!sel.value) return "journal_default";
+    return "journal_" + sel.value;
 }
 
+/* ===== STUDENTS ===== */
 function getStudents(){
     return JSON.parse(localStorage.getItem(journalKey()) || "[]");
 }
@@ -92,40 +95,49 @@ function saveStudents(list){
 
 /* ===== JOURNALS ===== */
 function addJournal(){
-    let name = journalName.value.trim();
+    const input=document.getElementById("journalName");
+    let name=input.value.trim();
     if(!name) return;
 
     let j = JSON.parse(localStorage.getItem("journals") || "[]");
     if(!j.includes(name)) j.push(name);
 
     localStorage.setItem("journals", JSON.stringify(j));
-    journalName.value="";
+    input.value="";
     loadJournals();
 }
 
 function loadJournals(){
-    journalSelect.innerHTML="";
+    const sel=document.getElementById("journalSelect");
+    sel.innerHTML="";
+
     let j = JSON.parse(localStorage.getItem("journals") || "[]");
+
+    if(j.length===0){
+        j=["Esasy žurnal"];
+        localStorage.setItem("journals",JSON.stringify(j));
+    }
 
     j.forEach(x=>{
         let op=document.createElement("option");
         op.value=x;
         op.textContent=x;
-        journalSelect.appendChild(op);
+        sel.appendChild(op);
     });
 
     loadStudents();
 }
 
-/* ===== RASPISANIYA ===== */
+/* ===== SCHEDULE EDITOR ===== */
 function startSchedule(){
-    let date=scheduleDate.value;
-    let count=parseInt(lessonCount.value);
-    if(!date||!count) return;
+    const date=document.getElementById("scheduleDate").value;
+    const count=parseInt(document.getElementById("lessonCount").value);
+    if(!date || !count) return;
+
+    let journals =
+        JSON.parse(localStorage.getItem("journals") || "[]");
 
     let html="<h4>Sapaklary saýla:</h4>";
-
-    let journals=JSON.parse(localStorage.getItem("journals")||[]);
 
     for(let i=0;i<count;i++){
         html+=`Sapak ${i+1}: 
@@ -141,7 +153,7 @@ function startSchedule(){
     html+=`<button onclick="saveSchedule('${date}',${count})">
             Raspisaniýany sakla</button>`;
 
-    scheduleEditor.innerHTML=html;
+    document.getElementById("scheduleEditor").innerHTML=html;
 }
 
 function saveSchedule(date,count){
@@ -158,10 +170,9 @@ function saveSchedule(date,count){
     showSchedule();
 }
 
-/* ===== SURATDAGY YALY GÖRNIŞ ===== */
+/* ===== SHOW SCHEDULE ===== */
 function showSchedule(){
     let sc=JSON.parse(localStorage.getItem("schedule")||"{}");
-
     let html="";
 
     Object.keys(sc).forEach(d=>{
@@ -180,26 +191,31 @@ function showSchedule(){
         });
     });
 
-    scheduleList.innerHTML=html;
+    document.getElementById("scheduleList").innerHTML=html;
 }
 
 /* ===== STUDENTS ===== */
 function addStudent(){
-    let nm=name.value.trim();
-    let gr=group.value.trim();
+    const nameInput=document.getElementById("name");
+    const groupInput=document.getElementById("group");
+
+    let nm=nameInput.value.trim();
+    let gr=groupInput.value.trim();
     if(!nm||!gr) return;
 
     let s=getStudents();
     s.push({name:nm,group:gr});
     saveStudents(s);
 
-    name.value="";
-    group.value="";
+    nameInput.value="";
+    groupInput.value="";
     loadStudents();
 }
 
 function loadStudents(){
-    studentList.innerHTML="";
+    const list=document.getElementById("studentList");
+    list.innerHTML="";
+
     let s=getStudents();
 
     s.forEach((st,i)=>{
@@ -209,12 +225,13 @@ function loadStudents(){
          <td>${st.name}</td>
          <td>${st.group}</td>
          <td>-</td>`;
-        studentList.appendChild(tr);
+        list.appendChild(tr);
     });
 
-    total.textContent="Jemi: "+s.length;
+    document.getElementById("total").textContent="Jemi: "+s.length;
 }
 
+/* ===== START ===== */
 loadJournals();
 showSchedule();
 

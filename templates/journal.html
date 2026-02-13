@@ -57,8 +57,11 @@ function addJournal(){
     if(!name) return;
 
     let journals = JSON.parse(localStorage.getItem("journals") || "[]");
-    journals.push(name);
-    localStorage.setItem("journals", JSON.stringify(journals));
+
+    if(!journals.includes(name)){
+        journals.push(name);
+        localStorage.setItem("journals", JSON.stringify(journals));
+    }
 
     document.getElementById("journalName").value="";
     loadJournals();
@@ -95,8 +98,8 @@ function updateCount(){
     let geldi=0, gelmedi=0;
 
     rows.forEach(tr=>{
-        if(tr.style.color==="green") geldi++;
-        if(tr.style.color==="red") gelmedi++;
+        if(tr.style.background==="lightgreen") geldi++;
+        if(tr.style.background==="salmon") gelmedi++;
     });
 
     document.getElementById("count").textContent =
@@ -121,13 +124,13 @@ function addRow(name,group,status=""){
 
     const tdAttend=document.createElement("td");
 
-    if(status==="yes") tr.style.color="green";
-    if(status==="no") tr.style.color="red";
+    if(status==="yes") tr.style.background="lightgreen";
+    if(status==="no") tr.style.background="salmon";
 
     const btnYes=document.createElement("button");
     btnYes.textContent="Geldi";
     btnYes.onclick=()=>{
-        tr.style.color="green";
+        tr.style.background="lightgreen";
         saveStatus(name,"yes");
         updateCount();
     };
@@ -135,7 +138,7 @@ function addRow(name,group,status=""){
     const btnNo=document.createElement("button");
     btnNo.textContent="Gelmedi";
     btnNo.onclick=()=>{
-        tr.style.color="red";
+        tr.style.background="salmon";
         saveStatus(name,"no");
         updateCount();
     };

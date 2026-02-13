@@ -60,7 +60,7 @@
 
 /* ===== KEYS ===== */
 function journalKey(){
-    return "journal_" + journalSelect.value;
+    return "journal_" + document.getElementById("journalSelect").value;
 }
 
 function lessonsKey(){
@@ -86,19 +86,21 @@ function saveLessons(list){
 
 /* ===== JOURNAL ===== */
 function addJournal(){
-    let name = journalName.value.trim();
+    let name = document.getElementById("journalName").value.trim();
     if(!name) return;
 
     let j = JSON.parse(localStorage.getItem("journals")||"[]");
     if(!j.includes(name)) j.push(name);
 
     localStorage.setItem("journals", JSON.stringify(j));
-    journalName.value="";
+    document.getElementById("journalName").value="";
     loadJournals();
 }
 
 function loadJournals(){
-    journalSelect.innerHTML="";
+    let sel = document.getElementById("journalSelect");
+    sel.innerHTML="";
+
     let j = JSON.parse(localStorage.getItem("journals")||"[]");
 
     if(j.length===0){
@@ -110,14 +112,14 @@ function loadJournals(){
         let o=document.createElement("option");
         o.value=x;
         o.textContent=x;
-        journalSelect.appendChild(o);
+        sel.appendChild(o);
     });
 
     loadStudents();
 }
 
 function deleteJournal(){
-    let name=journalSelect.value;
+    let name=document.getElementById("journalSelect").value;
     let j=JSON.parse(localStorage.getItem("journals")||"[]");
     j=j.filter(x=>x!==name);
     localStorage.setItem("journals",JSON.stringify(j));
@@ -142,13 +144,11 @@ function clearAll(){
 
 /* ===== LESSON ===== */
 function addLesson(){
-    let d=lessonDate.value;
+    let d=document.getElementById("lessonDate").value;
     if(!d) return;
 
-    let count=prompt("Näçe sapak bar?");
+    let count=parseInt(prompt("Näçe sapak bar?"));
     if(!count) return;
-
-    count=parseInt(count);
 
     let lessons=getLessons();
 
@@ -162,7 +162,7 @@ function addLesson(){
 
 /* ===== HEADER ===== */
 function buildHeader(){
-    let head=tableHead;
+    let head=document.getElementById("tableHead");
 
     head.innerHTML="<th>#</th><th>Student</th><th>Topar</th>";
 
@@ -229,12 +229,12 @@ function addRow(student,index){
     tdCtrl.appendChild(del);
     tr.appendChild(tdCtrl);
 
-    studentList.appendChild(tr);
+    document.getElementById("studentList").appendChild(tr);
 }
 
 /* ===== ADD STUDENT ===== */
 function addStudent(){
-    let name=name.value.trim();
+    let name=document.getElementById("name").value.trim();
     let group=document.getElementById("group").value.trim();
     if(!name||!group) return;
 
@@ -273,20 +273,28 @@ function buildDailyStats(){
         Bölekleýin: ${partial}</div>`;
     });
 
-    dailyStats.innerHTML=html;
+    document.getElementById("dailyStats").innerHTML=html;
 }
 
 /* ===== RASPISANIYA ===== */
 function addSchedule(){
-    let d=scheduleDate.value;
-    let c=lessonCount.value;
+    let d=document.getElementById("scheduleDate").value;
+    let c=parseInt(document.getElementById("lessonCount").value);
     if(!d||!c) return;
 
     let sc=JSON.parse(localStorage.getItem("schedule")||"{}");
     sc[d]=c;
-
     localStorage.setItem("schedule",JSON.stringify(sc));
+
+    /* žurnala hem goş */
+    let lessons=getLessons();
+    if(!lessons.find(x=>x.date===d)){
+        lessons.push({date:d,count:c});
+        saveLessons(lessons);
+    }
+
     showSchedule();
+    loadStudents();
 }
 
 function showSchedule(){
@@ -297,18 +305,19 @@ function showSchedule(){
         html+=`${d} — ${sc[d]} sapak<br>`;
     });
 
-    scheduleList.innerHTML=html;
+    document.getElementById("scheduleList").innerHTML=html;
 }
 
 /* ===== LOAD ===== */
 function loadStudents(){
     buildHeader();
-    studentList.innerHTML="";
+    document.getElementById("studentList").innerHTML="";
 
     let students=getStudents();
     students.forEach((s,i)=>addRow(s,i));
 
-    total.textContent="Jemi: "+students.length;
+    document.getElementById("total").textContent=
+        "Jemi: "+students.length;
 
     buildDailyStats();
 }

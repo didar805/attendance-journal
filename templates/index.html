@@ -47,6 +47,7 @@
 <h3>📅 Raspisaniýa</h3>
 <input type="date" id="scheduleDate">
 <input type="number" id="lessonCount" placeholder="Sapak sany">
+<input type="number" id="lessonDuration" placeholder="Sapak dowamlylygy (minut)">
 <button onclick="addSchedule()">Güni goş</button>
 
 <div id="scheduleList"></div>
@@ -272,10 +273,12 @@ function buildDailyStats(){
 function addSchedule(){
     let d=scheduleDate.value;
     let c=parseInt(lessonCount.value);
+    let dur=parseInt(lessonDuration.value);
+
     if(!d||!c) return;
 
     let sc=JSON.parse(localStorage.getItem("schedule")||"{}");
-    sc[d]=c;
+    sc[d]={count:c,duration:dur||0};
     localStorage.setItem("schedule",JSON.stringify(sc));
 
     let lessons=getLessons();
@@ -298,7 +301,7 @@ function showSchedule(){
 
     let html="<b>Raspisaniýa:</b><br>";
     Object.keys(sc).forEach(d=>{
-        html+=`${d} — ${sc[d]} sapak<br>`;
+        html+=`${d} — ${sc[d].count} sapak (${sc[d].duration} min)<br>`;
     });
 
     scheduleList.innerHTML=html;

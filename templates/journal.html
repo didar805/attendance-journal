@@ -141,8 +141,6 @@ function addLesson(){
 
 function buildHeader(){
     const head = document.getElementById("tableHead");
-    head.innerHTML = "";
-
     head.innerHTML = `
         <th>#</th>
         <th>Student</th>
@@ -157,9 +155,26 @@ function buildHeader(){
         head.appendChild(th);
     });
 
+    const percent = document.createElement("th");
+    percent.textContent = "%";
+    head.appendChild(percent);
+
     const ctrl = document.createElement("th");
     ctrl.textContent = "Dolandyryş";
     head.appendChild(ctrl);
+}
+
+function calcPercent(student){
+    const lessons = getLessons();
+    if(!student.att) return "0%";
+
+    let yes = 0;
+    lessons.forEach(d=>{
+        if(student.att[d] === "yes") yes++;
+    });
+
+    if(lessons.length === 0) return "0%";
+    return Math.round((yes / lessons.length) * 100) + "%";
 }
 
 function addRow(student,index){
@@ -184,7 +199,7 @@ function addRow(student,index){
             s[index].att = s[index].att || {};
             s[index].att[date] = "yes";
             saveStudents(s);
-            td.style.background = "lightgreen";
+            loadStudents();
         };
 
         const no = document.createElement("button");
@@ -195,7 +210,7 @@ function addRow(student,index){
             s[index].att = s[index].att || {};
             s[index].att[date] = "no";
             saveStudents(s);
-            td.style.background = "salmon";
+            loadStudents();
         };
 
         if(student.att && student.att[date]=="yes")
@@ -206,6 +221,10 @@ function addRow(student,index){
         td.append(yes,no);
         tr.appendChild(td);
     });
+
+    const percentTd = document.createElement("td");
+    percentTd.textContent = calcPercent(student);
+    tr.appendChild(percentTd);
 
     const tdCtrl = document.createElement("td");
 

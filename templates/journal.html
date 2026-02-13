@@ -28,22 +28,7 @@
 <tbody id="studentList"></tbody>
 </table>
 
-<hr>
-
-<h3>📅 Raspisaniýa</h3>
-
-<input type="date" id="scheduleDate">
-<br><br>
-
-<input id="lessonTime" placeholder="Wagt (09:30-11:00)">
-<input id="lessonName" placeholder="Sapak ady">
-<button onclick="addScheduleLesson()">Sapak goş</button>
-
-<div id="scheduleList"></div>
-
 <script>
-
-/* ================= STUDENTS ================= */
 
 function getMonthKey(){
     const d = new Date();
@@ -184,63 +169,7 @@ function loadStudents(){
     updateCount();
 }
 
-/* ================= RASPISANIYA ================= */
-
-function getSchedule(){
-    return JSON.parse(localStorage.getItem("schedule") || "{}");
-}
-
-function saveSchedule(sc){
-    localStorage.setItem("schedule", JSON.stringify(sc));
-}
-
-function addScheduleLesson(){
-    const date=document.getElementById("scheduleDate").value;
-    const time=document.getElementById("lessonTime").value.trim();
-    const name=document.getElementById("lessonName").value.trim();
-
-    if(!date||!time||!name){
-        alert("Maglumat doldur!");
-        return;
-    }
-
-    let sc=getSchedule();
-
-    if(!sc[date]) sc[date]=[];
-
-    sc[date].push({time,name});
-    saveSchedule(sc);
-
-    lessonTime.value="";
-    lessonName.value="";
-
-    showSchedule();
-}
-
-function showSchedule(){
-    let sc=getSchedule();
-    let html="";
-
-    Object.keys(sc).sort().forEach(date=>{
-        html+=`<h4>${date}</h4>`;
-
-        sc[date].forEach((l,i)=>{
-            html+=`
-            <div>
-            ${i+1}-sapak | ${l.time} | ${l.name}
-            </div>`;
-        });
-
-        html+="<hr>";
-    });
-
-    document.getElementById("scheduleList").innerHTML=html;
-}
-
-/* ================= INIT ================= */
-
 loadStudents();
-showSchedule();
 
 </script>
 

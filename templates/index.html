@@ -47,7 +47,7 @@
 <h3>📅 Raspisaniýa</h3>
 <input type="date" id="scheduleDate">
 <input type="number" id="lessonCount" placeholder="Sapak sany">
-<input type="number" id="lessonDuration" placeholder="Sapak dowamlylygy (minut)">
+<input type="number" id="lessonDuration" placeholder="Dowamlylygy (minut)">
 <button onclick="addSchedule()">Güni goş</button>
 
 <div id="scheduleList"></div>
@@ -59,7 +59,7 @@
 
 <script>
 
-/* ===== STORAGE KEYS ===== */
+/* ===== KEYS ===== */
 function journalKey(){
     return "journal_" + document.getElementById("journalSelect").value;
 }
@@ -168,7 +168,9 @@ function buildHeader(){
         head.appendChild(th);
     });
 
-    head.innerHTML+="<th>Dolandyryş</th>";
+    let ctrl=document.createElement("th");
+    ctrl.textContent="Dolandyryş";
+    head.appendChild(ctrl);
 }
 
 /* ===== ROW ===== */
@@ -183,23 +185,20 @@ function addRow(student,index){
     getLessons().forEach(lesson=>{
         let td=document.createElement("td");
 
-        student.att = student.att || {};
-        student.att[lesson.date] =
-            student.att[lesson.date] || [];
+        student.att=student.att||{};
+        student.att[lesson.date]=student.att[lesson.date]||[];
 
         for(let i=0;i<lesson.count;i++){
             let btn=document.createElement("button");
-
-            btn.textContent =
-                student.att[lesson.date][i] ? "✔" : "✖";
+            btn.textContent=student.att[lesson.date][i]?"✔":"✖";
 
             btn.onclick=()=>{
                 let s=getStudents();
                 s[index].att=s[index].att||{};
-                s[index].att[lesson.date] =
+                s[index].att[lesson.date]=
                     s[index].att[lesson.date]||[];
 
-                s[index].att[lesson.date][i] =
+                s[index].att[lesson.date][i]=
                     !s[index].att[lesson.date][i];
 
                 saveStudents(s);
@@ -229,109 +228,14 @@ function addRow(student,index){
     document.getElementById("studentList").appendChild(tr);
 }
 
-/* ===== ADD STUDENT (FIXED) ===== */
+/* ===== ADD STUDENT ===== */
 function addStudent(){
-    let nm = document.getElementById("name").value.trim();
-    let gr = document.getElementById("group").value.trim();
+    let nm=document.getElementById("name").value.trim();
+    let gr=document.getElementById("group").value.trim();
 
-    if(!nm || !gr){
+    if(!nm||!gr){
         alert("Maglumat doldur!");
         return;
     }
 
-    let s=getStudents();
-    s.push({name:nm,group:gr,att:{}});
-    saveStudents(s);
-
-    document.getElementById("name").value="";
-    document.getElementById("group").value="";
-
-    loadStudents();
-}
-
-/* ===== ANALYSIS ===== */
-function buildDailyStats(){
-    let html="<h3>Gün boýunça analiz:</h3>";
-    let students=getStudents();
-
-    getLessons().forEach(l=>{
-        let yes=0,no=0,partial=0;
-
-        students.forEach(s=>{
-            if(!s.att||!s.att[l.date]) return;
-
-            let arr=s.att[l.date];
-            let attended=arr.filter(x=>x).length;
-
-            if(attended===l.count) yes++;
-            else if(attended===0) no++;
-            else partial++;
-        });
-
-        html+=`<div><b>${l.date}</b> →
-        Hemmesi gelen: ${yes},
-        Gelmedik: ${no},
-        Bölekleýin: ${partial}</div>`;
-    });
-
-    document.getElementById("dailyStats").innerHTML=html;
-}
-
-/* ===== RASPISANIYA ===== */
-function addSchedule(){
-    let d=document.getElementById("scheduleDate").value;
-    let c=parseInt(document.getElementById("lessonCount").value);
-    let dur=parseInt(document.getElementById("lessonDuration").value);
-
-    if(!d||!c) return;
-
-    let sc=JSON.parse(localStorage.getItem("schedule")||"{}");
-    sc[d]={count:c,duration:dur||0};
-    localStorage.setItem("schedule",JSON.stringify(sc));
-
-    let lessons=getLessons();
-    let found=lessons.find(x=>x.date===d);
-
-    if(found){
-        found.count=c;
-    }else{
-        lessons.push({date:d,count:c});
-    }
-
-    saveLessons(lessons);
-
-    showSchedule();
-    loadStudents();
-}
-
-function showSchedule(){
-    let sc=JSON.parse(localStorage.getItem("schedule")||"{}");
-
-    let html="<b>Raspisaniýa:</b><br>";
-    Object.keys(sc).forEach(d=>{
-        html+=`${d} — ${sc[d].count} sapak (${sc[d].duration} min)<br>`;
-    });
-
-    document.getElementById("scheduleList").innerHTML=html;
-}
-
-/* ===== LOAD ===== */
-function loadStudents(){
-    buildHeader();
-    document.getElementById("studentList").innerHTML="";
-
-    let students=getStudents();
-    students.forEach((s,i)=>addRow(s,i));
-
-    document.getElementById("total").textContent="Jemi: "+students.length;
-
-    buildDailyStats();
-}
-
-loadJournals();
-showSchedule();
-
-</script>
-
-</body>
-</html>
+    let s

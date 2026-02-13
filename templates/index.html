@@ -40,6 +40,8 @@ body{font-family:Arial;margin:15px}
 
 <input type="date" id="scheduleDate"><br><br>
 
+<input type="time" id="startTime" value="09:00"><br><br>
+
 <input type="number" id="lessonCount"
 placeholder="Näçe para bar"><br><br>
 
@@ -58,6 +60,28 @@ placeholder="Para dowamlylygy (min)"><br><br>
 
 <script>
 
+/* ===== wagt hasaplaýjy ===== */
+function calcLessonTime(start, duration, breakMin, index){
+    let [h,m] = start.split(":").map(Number);
+
+    let totalStart = h*60 + m +
+        index*(duration + breakMin);
+
+    let totalEnd = totalStart + duration;
+
+    function toTime(min){
+        let hh = Math.floor(min/60);
+        let mm = min % 60;
+        return String(hh).padStart(2,"0") + ":" +
+               String(mm).padStart(2,"0");
+    }
+
+    return toTime(totalStart) +
+           " - " +
+           toTime(totalEnd);
+}
+
+/* ===== schedule start ===== */
 function startSchedule(){
     let date = scheduleDate.value;
     let count = parseInt(lessonCount.value);
@@ -85,25 +109,28 @@ function startSchedule(){
     scheduleEditor.innerHTML = html;
 }
 
+/* ===== save schedule ===== */
 function saveSchedule(date,count,duration){
     let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
 
-    sc[date] = [];
+    sc[date] = {
+        start: startTime.value,
+        duration: duration,
+        lessons: []
+    };
 
     for(let i=0;i<count;i++){
         let name =
             document.getElementById("lessonName_"+i).value;
 
-        sc[date].push({
-            name:name,
-            duration:duration
-        });
+        sc[date].lessons.push(name);
     }
 
     localStorage.setItem("schedule", JSON.stringify(sc));
     showSchedule();
 }
 
+/* ===== show schedule ===== */
 function showSchedule(){
     let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
 
@@ -112,14 +139,24 @@ function showSchedule(){
     Object.keys(sc).forEach(d=>{
         html += `<div class="schedule-day">${d}</div>`;
 
-        sc[d].forEach((l,i)=>{
+        let data = sc[d];
+
+        data.lessons.forEach((name,i)=>{
+
+            let time = calcLessonTime(
+                data.start,
+                data.duration,
+                10,   // arakesme
+                i
+            );
+
             html += `
             <div class="lesson-card">
                 <div class="lesson-time">
-                    ${i+1}-nji para (${l.duration} min)
+                    ${time}
                 </div>
                 <div class="lesson-title">
-                    ${l.name}
+                    ${name}
                 </div>
             </div>`;
         });

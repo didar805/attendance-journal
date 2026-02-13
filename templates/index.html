@@ -36,14 +36,8 @@
 
 <table border="1" width="100%">
 <thead>
-<tr id="tableHead">
-<th>#</th>
-<th>Student</th>
-<th>Topar</th>
-<th>Dolandyryş</th>
-</tr>
+<tr id="tableHead"></tr>
 </thead>
-
 <tbody id="studentList"></tbody>
 </table>
 
@@ -52,6 +46,7 @@
 
 <script>
 
+/* ==== KEYS ==== */
 function journalKey(){
     return "journal_" + document.getElementById("journalSelect").value;
 }
@@ -60,6 +55,7 @@ function lessonsKey(){
     return journalKey() + "_lessons";
 }
 
+/* ==== STORAGE ==== */
 function getStudents(){
     return JSON.parse(localStorage.getItem(journalKey()) || "[]");
 }
@@ -76,15 +72,17 @@ function saveLessons(list){
     localStorage.setItem(lessonsKey(), JSON.stringify(list));
 }
 
+/* ==== JOURNAL ==== */
 function addJournal(){
     const name = document.getElementById("journalName").value.trim();
     if(!name) return;
 
     let j = JSON.parse(localStorage.getItem("journals") || "[]");
     if(!j.includes(name)) j.push(name);
-    localStorage.setItem("journals", JSON.stringify(j));
 
+    localStorage.setItem("journals", JSON.stringify(j));
     document.getElementById("journalName").value = "";
+
     loadJournals();
 }
 
@@ -115,14 +113,15 @@ function deleteJournal(){
 
     let j = JSON.parse(localStorage.getItem("journals") || "[]");
     j = j.filter(x => x !== name);
-    localStorage.setItem("journals", JSON.stringify(j));
 
+    localStorage.setItem("journals", JSON.stringify(j));
     localStorage.removeItem("journal_"+name);
     localStorage.removeItem("journal_"+name+"_lessons");
 
     loadJournals();
 }
 
+/* ==== CLEAN ==== */
 function clearStudents(){
     localStorage.removeItem(journalKey());
     loadStudents();
@@ -135,6 +134,7 @@ function clearAll(){
     }
 }
 
+/* ==== LESSON ==== */
 function addLesson(){
     const d = document.getElementById("lessonDate").value;
     if(!d) return;
@@ -148,9 +148,15 @@ function addLesson(){
     loadStudents();
 }
 
+/* ==== TABLE HEADER ==== */
 function buildHeader(){
     const head = document.getElementById("tableHead");
-    head.innerHTML = "<th>#</th><th>Student</th><th>Topar</th>";
+
+    head.innerHTML = `
+        <th>#</th>
+        <th>Student</th>
+        <th>Topar</th>
+    `;
 
     const lessons = getLessons();
 
@@ -165,6 +171,7 @@ function buildHeader(){
     head.appendChild(ctrl);
 }
 
+/* ==== ROW ==== */
 function addRow(student,index){
     const list = document.getElementById("studentList");
     const lessons = getLessons();
@@ -228,6 +235,7 @@ function addRow(student,index){
     list.appendChild(tr);
 }
 
+/* ==== ADD STUDENT ==== */
 function addStudent(){
     const name = document.getElementById("name").value.trim();
     const group = document.getElementById("group").value.trim();
@@ -243,7 +251,7 @@ function addStudent(){
     loadStudents();
 }
 
-/* ==== TÄZE GÜN BOÝUNÇA HASAP ==== */
+/* ==== DAILY ANALYSIS ==== */
 function buildDailyStats(){
     const lessons = getLessons();
     const students = getStudents();
@@ -253,29 +261,26 @@ function buildDailyStats(){
     lessons.forEach(date=>{
         let yesAll = 0;
         let noAll = 0;
-        let partial = 0;
 
         students.forEach(s=>{
             if(!s.att) return;
 
-            const status = s.att[date];
-
-            if(status === "yes") yesAll++;
-            else if(status === "no") noAll++;
+            if(s.att[date] === "yes") yesAll++;
+            if(s.att[date] === "no") noAll++;
         });
 
         html += `
         <div>
             <b>${date}</b> →
             Gelen: ${yesAll},
-            Gelmedi: ${noAll},
-            Bölekleýin gelen: ${partial}
+            Gelmedi: ${noAll}
         </div>`;
     });
 
     document.getElementById("dailyStats").innerHTML = html;
 }
 
+/* ==== LOAD ==== */
 function loadStudents(){
     buildHeader();
 

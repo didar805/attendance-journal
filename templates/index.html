@@ -243,7 +243,7 @@ function addStudent(){
     loadStudents();
 }
 
-/* ==== GÜN BOÝUNÇA HASAP ==== */
+/* ==== TÄZE GÜN BOÝUNÇA HASAP ==== */
 function buildDailyStats(){
     const lessons = getLessons();
     const students = getStudents();
@@ -251,22 +251,26 @@ function buildDailyStats(){
     let html = "<h3>Gün boýunça hasap:</h3>";
 
     lessons.forEach(date=>{
-        let yesCount = 0;
-        let noCount = 0;
+        let yesAll = 0;
+        let noAll = 0;
+        let partial = 0;
 
         students.forEach(s=>{
             if(!s.att) return;
 
-            if(s.att[date] === "yes") yesCount++;
-            if(s.att[date] === "no") noCount++;
+            const status = s.att[date];
+
+            if(status === "yes") yesAll++;
+            else if(status === "no") noAll++;
         });
 
         html += `
-            <div>
-                <b>${date}</b> →
-                Gelen: ${yesCount},
-                Gelmedi: ${noCount}
-            </div>`;
+        <div>
+            <b>${date}</b> →
+            Gelen: ${yesAll},
+            Gelmedi: ${noAll},
+            Bölekleýin gelen: ${partial}
+        </div>`;
     });
 
     document.getElementById("dailyStats").innerHTML = html;

@@ -2,27 +2,7 @@
 <html>
 <body>
 
-<h3>Žurnallar</h3>
-<input id="journalName" placeholder="Žurnal ady">
-<button onclick="addJournal()">Žurnal goş</button>
-<br><br>
-
-<select id="journalSelect" onchange="loadStudents()"></select>
-
-<hr>
-
-<h3>Admin panel</h3>
-<button onclick="deleteJournal()">Žurnaly poz</button>
-<button onclick="clearStudents()">Studentleri poz</button>
-<button onclick="clearAll()">Hemmäni poz</button>
-
-<hr>
-
-<h3>Sapak güni goş</h3>
-<input id="lessonDate" type="date">
-<button onclick="addLesson()">Gün goş</button>
-
-<hr>
+<h3>Studentler</h3>
 
 <h3>Student goş</h3>
 <input id="name" placeholder="Ady">
@@ -31,286 +11,165 @@
 
 <br><br>
 
+<h4 id="count">Geldi: 0 | Gelmedi: 0</h4>
 <h4 id="total">Jemi: 0</h4>
 
 <table border="1" width="100%">
 <thead>
-<tr id="tableHead"></tr>
+<tr>
+<th>#</th>
+<th>Student</th>
+<th>Topar</th>
+<th>Gatnaşygy</th>
+<th>Dolandyryş</th>
+</tr>
 </thead>
+
 <tbody id="studentList"></tbody>
 </table>
 
-<h3>Gün boýunça hasap</h3>
-<div id="dailyStats"></div>
-
 <script>
 
-function journalKey(){
-    return "journal_" + document.getElementById("journalSelect").value;
-}
-
-function lessonsKey(){
-    return journalKey() + "_lessons";
+function getMonthKey(){
+    const d = new Date();
+    return d.getFullYear()+"_"+(d.getMonth()+1);
 }
 
 function getStudents(){
-    return JSON.parse(localStorage.getItem(journalKey()) || "[]");
+    return JSON.parse(localStorage.getItem("students") || "[]");
 }
 
 function saveStudents(list){
-    localStorage.setItem(journalKey(), JSON.stringify(list));
+    localStorage.setItem("students", JSON.stringify(list));
 }
 
-function getLessons(){
-    return JSON.parse(localStorage.getItem(lessonsKey()) || "[]");
+function renumber(){
+    document.querySelectorAll("#studentList tr")
+        .forEach((tr,i)=>tr.children[0].textContent=i+1);
 }
 
-function saveLessons(list){
-    localStorage.setItem(lessonsKey(), JSON.stringify(list));
-}
+function updateCount(){
+    const rows=document.querySelectorAll("#studentList tr");
+    let geldi=0, gelmedi=0;
 
-function addJournal(){
-    const name = document.getElementById("journalName").value.trim();
-    if(!name) return;
-
-    let j = JSON.parse(localStorage.getItem("journals") || "[]");
-    if(!j.includes(name)) j.push(name);
-
-    localStorage.setItem("journals", JSON.stringify(j));
-    document.getElementById("journalName").value = "";
-    loadJournals();
-}
-
-function loadJournals(){
-    const sel = document.getElementById("journalSelect");
-    sel.innerHTML = "";
-
-    let j = JSON.parse(localStorage.getItem("journals") || "[]");
-
-    if(j.length === 0){
-        j = ["Esasy žurnal"];
-        localStorage.setItem("journals", JSON.stringify(j));
-    }
-
-    j.forEach(x=>{
-        const op = document.createElement("option");
-        op.value = x;
-        op.textContent = x;
-        sel.appendChild(op);
+    rows.forEach(tr=>{
+        if(tr.style.color==="green") geldi++;
+        if(tr.style.color==="red") gelmedi++;
     });
 
-    loadStudents();
+    document.getElementById("count").textContent =
+        "Geldi: "+geldi+" | Gelmedi: "+gelmedi;
+
+    document.getElementById("total").textContent =
+        "Jemi: "+rows.length;
 }
 
-function deleteJournal(){
-    const name = document.getElementById("journalSelect").value;
-    if(!name) return;
+function saveStatus(name,status){
+    let students=getStudents();
+    const key=getMonthKey();
 
-    let j = JSON.parse(localStorage.getItem("journals") || "[]");
-    j = j.filter(x => x !== name);
+    students=students.map(s=>
+        s.name===name
+        ? {...s,["status_"+key]:status}
+        : s
+    );
 
-    localStorage.setItem("journals", JSON.stringify(j));
-    localStorage.removeItem("journal_"+name);
-    localStorage.removeItem("journal_"+name+"_lessons");
-
-    loadJournals();
+    saveStudents(students);
 }
 
-function clearStudents(){
-    localStorage.removeItem(journalKey());
-    loadStudents();
+function removeStudent(name){
+    let students=getStudents()
+        .filter(s=>s.name!==name);
+    saveStudents(students);
 }
 
-function clearAll(){
-    if(confirm("Hemmäni pozmalymy?")){
-        localStorage.clear();
-        location.reload();
-    }
-}
+function addRow(name,group,status=""){
+    const list=document.getElementById("studentList");
+    const tr=document.createElement("tr");
 
-function addLesson(){
-    const d = document.getElementById("lessonDate").value;
-    if(!d) return;
+    const tdNum=document.createElement("td");
+    tdNum.textContent=list.children.length+1;
 
-    let lessons = getLessons();
-    if(!lessons.includes(d)){
-        lessons.push(d);
-        saveLessons(lessons);
-    }
+    const tdName=document.createElement("td");
+    tdName.textContent=name;
 
-    loadStudents();
-}
+    const tdGroup=document.createElement("td");
+    tdGroup.textContent=group;
 
-function buildHeader(){
-    const head = document.getElementById("tableHead");
-    head.innerHTML = `
-        <th>#</th>
-        <th>Student</th>
-        <th>Topar</th>
-    `;
+    const tdAttend=document.createElement("td");
 
-    const lessons = getLessons();
+    if(status==="yes") tr.style.color="green";
+    if(status==="no") tr.style.color="red";
 
-    lessons.forEach(d=>{
-        const th = document.createElement("th");
-        th.textContent = d;
-        head.appendChild(th);
-    });
-
-    const percent = document.createElement("th");
-    percent.textContent = "%";
-    head.appendChild(percent);
-
-    const ctrl = document.createElement("th");
-    ctrl.textContent = "Dolandyryş";
-    head.appendChild(ctrl);
-}
-
-function calcPercent(student){
-    const lessons = getLessons();
-    if(!student.att) return "0%";
-
-    let yes = 0;
-    lessons.forEach(d=>{
-        if(student.att[d] === "yes") yes++;
-    });
-
-    if(lessons.length === 0) return "0%";
-    return Math.round((yes / lessons.length) * 100) + "%";
-}
-
-function addRow(student,index){
-    const list = document.getElementById("studentList");
-    const lessons = getLessons();
-
-    const tr = document.createElement("tr");
-
-    tr.innerHTML =
-        `<td>${index+1}</td>
-         <td>${student.name}</td>
-         <td>${student.group}</td>`;
-
-    lessons.forEach(date=>{
-        const td = document.createElement("td");
-
-        const yes = document.createElement("button");
-        yes.textContent = "✔";
-
-        yes.onclick = ()=>{
-            let s = getStudents();
-            s[index].att = s[index].att || {};
-            s[index].att[date] = "yes";
-            saveStudents(s);
-            loadStudents();
-        };
-
-        const no = document.createElement("button");
-        no.textContent = "✖";
-
-        no.onclick = ()=>{
-            let s = getStudents();
-            s[index].att = s[index].att || {};
-            s[index].att[date] = "no";
-            saveStudents(s);
-            loadStudents();
-        };
-
-        if(student.att && student.att[date]=="yes")
-            td.style.background="lightgreen";
-        if(student.att && student.att[date]=="no")
-            td.style.background="salmon";
-
-        td.append(yes,no);
-        tr.appendChild(td);
-    });
-
-    const percentTd = document.createElement("td");
-    percentTd.textContent = calcPercent(student);
-    tr.appendChild(percentTd);
-
-    const tdCtrl = document.createElement("td");
-
-    const del = document.createElement("button");
-    del.textContent = "Poz";
-
-    del.onclick = ()=>{
-        let s = getStudents();
-        s.splice(index,1);
-        saveStudents(s);
-        loadStudents();
+    const btnYes=document.createElement("button");
+    btnYes.textContent="Geldi";
+    btnYes.onclick=()=>{
+        tr.style.color="green";
+        saveStatus(name,"yes");
+        updateCount();
     };
 
-    tdCtrl.appendChild(del);
-    tr.appendChild(tdCtrl);
+    const btnNo=document.createElement("button");
+    btnNo.textContent="Gelmedi";
+    btnNo.onclick=()=>{
+        tr.style.color="red";
+        saveStatus(name,"no");
+        updateCount();
+    };
 
+    tdAttend.append(btnYes,btnNo);
+
+    const tdCtrl=document.createElement("td");
+
+    const btnDelete=document.createElement("button");
+    btnDelete.textContent="Poz";
+    btnDelete.onclick=()=>{
+        tr.remove();
+        removeStudent(name);
+        renumber();
+        updateCount();
+    };
+
+    tdCtrl.appendChild(btnDelete);
+
+    tr.append(tdNum,tdName,tdGroup,tdAttend,tdCtrl);
     list.appendChild(tr);
 }
 
 function addStudent(){
-    const name = document.getElementById("name").value.trim();
-    const group = document.getElementById("group").value.trim();
-    if(!name || !group) return;
+    const name=document.getElementById("name").value.trim();
+    const group=document.getElementById("group").value.trim();
 
-    let s = getStudents();
-    s.push({name, group, att:{}});
-    saveStudents(s);
+    if(!name||!group) return;
 
-    document.getElementById("name").value = "";
-    document.getElementById("group").value = "";
+    let students=getStudents();
+    students.push({name,group});
+    saveStudents(students);
 
-    loadStudents();
-}
+    addRow(name,group);
 
-function calcDailyStats(){
-    const students = getStudents();
-    const lessons = getLessons();
-    const statsDiv = document.getElementById("dailyStats");
+    document.getElementById("name").value="";
+    document.getElementById("group").value="";
 
-    statsDiv.innerHTML = "";
-
-    lessons.forEach(day=>{
-        let geldi = 0;
-        let gelmedi = 0;
-        let partial = 0;
-
-        students.forEach(s=>{
-            if(!s.att || !s.att[day]){
-                gelmedi++;
-                return;
-            }
-
-            if(s.att[day] === "yes")
-                geldi++;
-            else if(s.att[day] === "no")
-                gelmedi++;
-        });
-
-        statsDiv.innerHTML += `
-            <div style="margin-bottom:10px">
-                <b>${day}</b><br>
-                Gelen: ${geldi}<br>
-                Gelmedi: ${gelmedi}
-            </div>
-        `;
-    });
+    updateCount();
 }
 
 function loadStudents(){
-    buildHeader();
+    const students=getStudents();
+    const key=getMonthKey();
 
-    const list = document.getElementById("studentList");
-    list.innerHTML = "";
+    students.forEach(s=>{
+        addRow(
+            s.name,
+            s.group,
+            s["status_"+key] || ""
+        );
+    });
 
-    const students = getStudents();
-    students.forEach((s,i)=>addRow(s,i));
-
-    document.getElementById("total").textContent =
-        "Jemi: " + students.length;
-
-    calcDailyStats();
+    updateCount();
 }
 
-loadJournals();
+loadStudents();
 
 </script>
 

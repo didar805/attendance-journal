@@ -2,15 +2,16 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<title>Raspisaniýa</title>
 
 <style>
-body{font-family:Arial;margin:10px}
+body{font-family:Arial;margin:15px}
 
 .schedule-day{
     background:#2c3e50;
     color:white;
     padding:10px;
-    margin-top:10px;
+    margin-top:15px;
     border-radius:6px;
 }
 
@@ -35,204 +36,98 @@ body{font-family:Arial;margin:10px}
 </head>
 <body>
 
-<h3>Žurnallar</h3>
+<h2>📅 Raspisaniýa goş</h2>
 
-<input id="journalName" placeholder="Žurnal ady">
-<button onclick="addJournal()">Žurnal goş</button>
-<br><br>
+<input type="date" id="scheduleDate"><br><br>
 
-<select id="journalSelect" onchange="loadStudents()"></select>
+<input type="number" id="lessonCount"
+placeholder="Näçe para bar"><br><br>
 
-<hr>
+<input type="number" id="lessonDuration"
+placeholder="Para dowamlylygy (min)"><br><br>
 
-<h3>📅 Raspisaniýa düzmek</h3>
-
-<input type="date" id="scheduleDate">
-<input type="number" id="lessonCount" placeholder="Näçe sapak bar">
 <button onclick="startSchedule()">Dowam et</button>
 
+<hr>
+
 <div id="scheduleEditor"></div>
-<div id="scheduleList"></div>
 
 <hr>
 
-<h3>Student goş</h3>
-<input id="name" placeholder="Ady">
-<input id="group" placeholder="Topary">
-<button onclick="addStudent()">Goş</button>
-
-<h4 id="total">Jemi: 0</h4>
-
-<table border="1" width="100%">
-<thead>
-<tr>
-<th>#</th>
-<th>Student</th>
-<th>Topar</th>
-<th>Dolandyryş</th>
-</tr>
-</thead>
-<tbody id="studentList"></tbody>
-</table>
+<div id="scheduleList"></div>
 
 <script>
 
-/* ===== JOURNAL KEY ===== */
-function journalKey(){
-    const sel=document.getElementById("journalSelect");
-    if(!sel.value) return "journal_default";
-    return "journal_" + sel.value;
-}
-
-/* ===== STUDENTS ===== */
-function getStudents(){
-    return JSON.parse(localStorage.getItem(journalKey()) || "[]");
-}
-
-function saveStudents(list){
-    localStorage.setItem(journalKey(), JSON.stringify(list));
-}
-
-/* ===== JOURNALS ===== */
-function addJournal(){
-    const input=document.getElementById("journalName");
-    let name=input.value.trim();
-    if(!name) return;
-
-    let j = JSON.parse(localStorage.getItem("journals") || "[]");
-    if(!j.includes(name)) j.push(name);
-
-    localStorage.setItem("journals", JSON.stringify(j));
-    input.value="";
-    loadJournals();
-}
-
-function loadJournals(){
-    const sel=document.getElementById("journalSelect");
-    sel.innerHTML="";
-
-    let j = JSON.parse(localStorage.getItem("journals") || "[]");
-
-    if(j.length===0){
-        j=["Esasy žurnal"];
-        localStorage.setItem("journals",JSON.stringify(j));
-    }
-
-    j.forEach(x=>{
-        let op=document.createElement("option");
-        op.value=x;
-        op.textContent=x;
-        sel.appendChild(op);
-    });
-
-    loadStudents();
-}
-
-/* ===== SCHEDULE EDITOR ===== */
 function startSchedule(){
-    const date=document.getElementById("scheduleDate").value;
-    const count=parseInt(document.getElementById("lessonCount").value);
-    if(!date || !count) return;
+    let date = scheduleDate.value;
+    let count = parseInt(lessonCount.value);
+    let duration = parseInt(lessonDuration.value);
 
-    let journals =
-        JSON.parse(localStorage.getItem("journals") || "[]");
-
-    let html="<h4>Sapaklary saýla:</h4>";
-
-    for(let i=0;i<count;i++){
-        html+=`Sapak ${i+1}: 
-        <select id="lessonSel_${i}">`;
-
-        journals.forEach(j=>{
-            html+=`<option>${j}</option>`;
-        });
-
-        html+="</select><br>";
+    if(!date || !count || !duration){
+        alert("Maglumat doldur!");
+        return;
     }
 
-    html+=`<button onclick="saveSchedule('${date}',${count})">
-            Raspisaniýany sakla</button>`;
+    let html="<h3>Paralary ýaz:</h3>";
 
-    document.getElementById("scheduleEditor").innerHTML=html;
+    for(let i=0;i<count;i++){
+        html += `
+        Para ${i+1}: 
+        <input id="lessonName_${i}"
+        placeholder="Sapak ady"><br><br>`;
+    }
+
+    html += `
+    <button onclick="saveSchedule('${date}',${count},${duration})">
+        Raspisaniýany sakla
+    </button>`;
+
+    scheduleEditor.innerHTML = html;
 }
 
-function saveSchedule(date,count){
-    let sc=JSON.parse(localStorage.getItem("schedule")||"{}");
-    sc[date]=[];
+function saveSchedule(date,count,duration){
+    let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
+
+    sc[date] = [];
 
     for(let i=0;i<count;i++){
-        sc[date].push(
-            document.getElementById("lessonSel_"+i).value
-        );
+        let name =
+            document.getElementById("lessonName_"+i).value;
+
+        sc[date].push({
+            name:name,
+            duration:duration
+        });
     }
 
-    localStorage.setItem("schedule",JSON.stringify(sc));
+    localStorage.setItem("schedule", JSON.stringify(sc));
     showSchedule();
 }
 
-/* ===== SHOW SCHEDULE ===== */
 function showSchedule(){
-    let sc=JSON.parse(localStorage.getItem("schedule")||"{}");
+    let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
+
     let html="";
 
     Object.keys(sc).forEach(d=>{
-        html+=`<div class="schedule-day">${d}</div>`;
+        html += `<div class="schedule-day">${d}</div>`;
 
-        sc[d].forEach((lesson,i)=>{
-            html+=`
+        sc[d].forEach((l,i)=>{
+            html += `
             <div class="lesson-card">
                 <div class="lesson-time">
-                    ${i+1}-nji sapak
+                    ${i+1}-nji para (${l.duration} min)
                 </div>
                 <div class="lesson-title">
-                    ${lesson}
+                    ${l.name}
                 </div>
             </div>`;
         });
     });
 
-    document.getElementById("scheduleList").innerHTML=html;
+    scheduleList.innerHTML = html;
 }
 
-/* ===== STUDENTS ===== */
-function addStudent(){
-    const nameInput=document.getElementById("name");
-    const groupInput=document.getElementById("group");
-
-    let nm=nameInput.value.trim();
-    let gr=groupInput.value.trim();
-    if(!nm||!gr) return;
-
-    let s=getStudents();
-    s.push({name:nm,group:gr});
-    saveStudents(s);
-
-    nameInput.value="";
-    groupInput.value="";
-    loadStudents();
-}
-
-function loadStudents(){
-    const list=document.getElementById("studentList");
-    list.innerHTML="";
-
-    let s=getStudents();
-
-    s.forEach((st,i)=>{
-        let tr=document.createElement("tr");
-        tr.innerHTML=
-        `<td>${i+1}</td>
-         <td>${st.name}</td>
-         <td>${st.group}</td>
-         <td>-</td>`;
-        list.appendChild(tr);
-    });
-
-    document.getElementById("total").textContent="Jemi: "+s.length;
-}
-
-/* ===== START ===== */
-loadJournals();
 showSchedule();
 
 </script>

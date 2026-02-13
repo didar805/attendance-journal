@@ -94,20 +94,23 @@ function renumber(){
 }
 
 function updateCount(){
-    const rows=document.querySelectorAll("#studentList tr");
-    let geldi=0, gelmedi=0;
+    const students = getStudents();
 
-    rows.forEach(tr=>{
-        if(tr.style.background==="lightgreen") geldi++;
-        if(tr.style.background==="salmon") gelmedi++;
+    let geldi = 0;
+    let gelmedi = 0;
+
+    students.forEach(s=>{
+        if(s.status === "yes") geldi++;
+        if(s.status === "no") gelmedi++;
     });
 
     document.getElementById("count").textContent =
-        "Geldi: "+geldi+" | Gelmedi: "+gelmedi;
+        "Geldi: " + geldi + " | Gelmedi: " + gelmedi;
 
     document.getElementById("total").textContent =
-        "Jemi: "+rows.length;
+        "Jemi: " + students.length;
 }
+
 
 function addRow(name,group,status=""){
     const list=document.getElementById("studentList");
@@ -210,3 +213,4 @@ loadJournals();
 
 </body>
 </html>
+

@@ -1,4 +1,4 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <body>
 
@@ -47,6 +47,9 @@ DOCTYPE html>
 <tbody id="studentList"></tbody>
 </table>
 
+<br>
+<div id="dailyStats"></div>
+
 <script>
 
 function journalKey(){
@@ -90,6 +93,11 @@ function loadJournals(){
     sel.innerHTML = "";
 
     let j = JSON.parse(localStorage.getItem("journals") || "[]");
+
+    if(j.length === 0){
+        j = ["Esasy žurnal"];
+        localStorage.setItem("journals", JSON.stringify(j));
+    }
 
     j.forEach(x=>{
         const op = document.createElement("option");
@@ -179,7 +187,7 @@ function addRow(student,index){
             s[index].att = s[index].att || {};
             s[index].att[date] = "yes";
             saveStudents(s);
-            td.style.background = "lightgreen";
+            loadStudents();
         };
 
         const no = document.createElement("button");
@@ -190,7 +198,7 @@ function addRow(student,index){
             s[index].att = s[index].att || {};
             s[index].att[date] = "no";
             saveStudents(s);
-            td.style.background = "salmon";
+            loadStudents();
         };
 
         if(student.att && student.att[date]=="yes")
@@ -235,6 +243,35 @@ function addStudent(){
     loadStudents();
 }
 
+/* ==== GÜN BOÝUNÇA HASAP ==== */
+function buildDailyStats(){
+    const lessons = getLessons();
+    const students = getStudents();
+
+    let html = "<h3>Gün boýunça hasap:</h3>";
+
+    lessons.forEach(date=>{
+        let yesCount = 0;
+        let noCount = 0;
+
+        students.forEach(s=>{
+            if(!s.att) return;
+
+            if(s.att[date] === "yes") yesCount++;
+            if(s.att[date] === "no") noCount++;
+        });
+
+        html += `
+            <div>
+                <b>${date}</b> →
+                Gelen: ${yesCount},
+                Gelmedi: ${noCount}
+            </div>`;
+    });
+
+    document.getElementById("dailyStats").innerHTML = html;
+}
+
 function loadStudents(){
     buildHeader();
 
@@ -242,11 +279,12 @@ function loadStudents(){
     list.innerHTML = "";
 
     const students = getStudents();
-
     students.forEach((s,i)=>addRow(s,i));
 
     document.getElementById("total").textContent =
         "Jemi: " + students.length;
+
+    buildDailyStats();
 }
 
 loadJournals();

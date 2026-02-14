@@ -102,7 +102,7 @@ function startSchedule(){
     }
 
     html += `
-    <button onclick="saveSchedule('${date}',${count},${duration})">
+    <button onclick="saveSchedule()">
         Raspisaniýany sakla
     </button>`;
 
@@ -110,7 +110,11 @@ function startSchedule(){
 }
 
 /* ===== save schedule ===== */
-function saveSchedule(date,count,duration){
+function saveSchedule(){
+    let date = scheduleDate.value;
+    let duration = parseInt(lessonDuration.value);
+    let count = parseInt(lessonCount.value);
+
     let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
 
     sc[date] = {
@@ -121,12 +125,14 @@ function saveSchedule(date,count,duration){
 
     for(let i=0;i<count;i++){
         let name =
-            document.getElementById("lessonName_"+i).value;
+            document.getElementById("lessonName_"+i).value || "Sapak";
 
         sc[date].lessons.push(name);
     }
 
     localStorage.setItem("schedule", JSON.stringify(sc));
+
+    scheduleEditor.innerHTML="";
     showSchedule();
 }
 
@@ -146,7 +152,7 @@ function showSchedule(){
             let time = calcLessonTime(
                 data.start,
                 data.duration,
-                10,   // arakesme
+                10,
                 i
             );
 

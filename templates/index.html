@@ -32,8 +32,8 @@ body{font-family:Arial;margin:15px}
     font-weight:bold;
 }
 </style>
-
 </head>
+
 <body>
 
 <h2>📅 Raspisaniýa goş</h2>
@@ -48,7 +48,7 @@ placeholder="Näçe para bar"><br><br>
 <input type="number" id="lessonDuration"
 placeholder="Para dowamlylygy (min)"><br><br>
 
-<button type="button" onclick="startSchedule()">Dowam et</button>
+<button type="button" id="btnStart">Dowam et</button>
 
 <hr>
 
@@ -59,6 +59,7 @@ placeholder="Para dowamlylygy (min)"><br><br>
 <div id="scheduleList"></div>
 
 <script>
+document.addEventListener("DOMContentLoaded", function(){
 
 /* ===== wagt hasaplaýjy ===== */
 function calcLessonTime(start, duration, breakMin, index){
@@ -80,7 +81,7 @@ function calcLessonTime(start, duration, breakMin, index){
 }
 
 /* ===== schedule start ===== */
-function startSchedule(){
+document.getElementById("btnStart").onclick = function(){
     let date = scheduleDate.value;
     let count = parseInt(lessonCount.value);
     let duration = parseInt(lessonDuration.value);
@@ -100,12 +101,14 @@ function startSchedule(){
     }
 
     html += `
-    <button type="button" onclick="saveSchedule()">
+    <button type="button" id="btnSave">
         Raspisaniýany sakla
     </button>`;
 
     scheduleEditor.innerHTML = html;
-}
+
+    document.getElementById("btnSave").onclick = saveSchedule;
+};
 
 /* ===== save schedule ===== */
 function saveSchedule(){
@@ -122,8 +125,9 @@ function saveSchedule(){
     };
 
     for(let i=0;i<count;i++){
-        let name =
-            document.getElementById("lessonName_"+i).value || "Sapak";
+        let inp = document.getElementById("lessonName_"+i);
+        let name = inp.value.trim();
+        if(!name) name = "Sapak " + (i+1);
 
         sc[date].lessons.push(name);
     }
@@ -170,6 +174,7 @@ function showSchedule(){
 
 showSchedule();
 
+});
 </script>
 
 </body>

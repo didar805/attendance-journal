@@ -48,7 +48,7 @@ placeholder="Näçe para bar"><br><br>
 <input type="number" id="lessonDuration"
 placeholder="Para dowamlylygy (min)"><br><br>
 
-<button onclick="startSchedule()">Dowam et</button>
+<button type="button" onclick="startSchedule()">Dowam et</button>
 
 <hr>
 
@@ -72,13 +72,11 @@ function calcLessonTime(start, duration, breakMin, index){
     function toTime(min){
         let hh = Math.floor(min/60);
         let mm = min % 60;
-        return String(hh).padStart(2,"0") + ":" +
+        return String(hh).padStart(2,"0")+":"+
                String(mm).padStart(2,"0");
     }
 
-    return toTime(totalStart) +
-           " - " +
-           toTime(totalEnd);
+    return toTime(totalStart)+" - "+toTime(totalEnd);
 }
 
 /* ===== schedule start ===== */
@@ -102,7 +100,7 @@ function startSchedule(){
     }
 
     html += `
-    <button onclick="saveSchedule()">
+    <button type="button" onclick="saveSchedule()">
         Raspisaniýany sakla
     </button>`;
 
@@ -132,7 +130,6 @@ function saveSchedule(){
 
     localStorage.setItem("schedule", JSON.stringify(sc));
 
-    scheduleEditor.innerHTML="";
     showSchedule();
 }
 

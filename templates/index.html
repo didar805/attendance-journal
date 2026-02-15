@@ -27,14 +27,8 @@ body{font-family:Arial;margin:15px}
     border-radius:6px;
 }
 
-.lesson-time{
-    font-size:13px;
-    color:#555;
-}
-
-.lesson-title{
-    font-weight:bold;
-}
+.lesson-time{font-size:13px;color:#555;}
+.lesson-title{font-weight:bold;}
 </style>
 </head>
 
@@ -45,7 +39,7 @@ body{font-family:Arial;margin:15px}
 <input type="date" id="scheduleDate"><br><br>
 <input type="time" id="startTime" value="09:30"><br><br>
 <input type="number" id="lessonCount" placeholder="Näçe para bar"><br><br>
-<input type="number" id="lessonDuration" placeholder="Para dowamlylygy (min)"><br><br>
+<input type="number" id="lessonDuration" placeholder="Para dowamlylygy"><br><br>
 
 <button type="button" id="btnStart">Dowam et</button>
 
@@ -57,22 +51,15 @@ body{font-family:Arial;margin:15px}
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
+const btnStart = document.getElementById("btnStart");
+const scheduleEditor = document.getElementById("scheduleEditor");
+const scheduleList = document.getElementById("scheduleList");
+
 function safeSchedule(){
     try{
-        let sc = JSON.parse(localStorage.getItem("schedule") || "{}");
-        if(typeof sc !== "object" || sc === null) return {};
-        return sc;
-    }catch{
-        return {};
-    }
-}
-
-function deleteDay(date){
-    if(!confirm("Bu güni pozmalymy?")) return;
-    let sc=safeSchedule();
-    delete sc[date];
-    localStorage.setItem("schedule",JSON.stringify(sc));
-    showSchedule();
+        let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
+        return (typeof sc==="object" && sc)?sc:{};
+    }catch{return {};}
 }
 
 function formatDate(d){
@@ -80,24 +67,18 @@ function formatDate(d){
     return p[2]+"."+p[1]+"."+p[0];
 }
 
-function getWeekDay(dateStr){
+function getWeekDay(d){
     const days=[
         "Ýekşenbe","Duşenbe","Sişenbe",
         "Çarşenbe","Penşenbe","Anna","Şenbe"
     ];
-    let dt=new Date(dateStr);
-    if(isNaN(dt)) return "";
-    return days[dt.getDay()];
+    let dt=new Date(d);
+    return isNaN(dt)?"":days[dt.getDay()];
 }
 
 function calcLessonTime(start,duration,index){
     if(!start||!duration) return "";
-
-    let p=start.split(":");
-    if(p.length!=2) return "";
-
-    let h=Number(p[0]);
-    let m=Number(p[1]);
+    let [h,m]=start.split(":").map(Number);
 
     let breakMin=10;
     let extraBreak=40;
@@ -105,19 +86,20 @@ function calcLessonTime(start,duration,index){
     let totalStart=h*60+m+index*(duration+breakMin);
     if(index>=2) totalStart+=extraBreak;
 
-    let totalEnd=totalStart+duration;
+    let end=totalStart+duration;
 
-    function toTime(min){
+    const t=min=>{
         let hh=Math.floor(min/60);
         let mm=min%60;
         return String(hh).padStart(2,"0")+":"+
                String(mm).padStart(2,"0");
-    }
+    };
 
-    return toTime(totalStart)+" - "+toTime(totalEnd);
+    return t(totalStart)+" - "+t(end);
 }
 
 btnStart.onclick=function(){
+
     let date=scheduleDate.value;
     let count=parseInt(lessonCount.value);
     let duration=parseInt(lessonDuration.value);
@@ -132,12 +114,9 @@ btnStart.onclick=function(){
     for(let i=0;i<count;i++){
         html+=`
         Para ${i+1}:<br>
-        Sapak:<br>
-        <input id="lessonName_${i}"><br>
-        Mugallym:<br>
-        <input id="lessonTeacher_${i}"><br>
-        Kabinet:<br>
-        <input id="lessonRoom_${i}"><br><br>`;
+        Sapak:<br><input id="lessonName_${i}"><br>
+        Mugallym:<br><input id="lessonTeacher_${i}"><br>
+        Kabinet:<br><input id="lessonRoom_${i}"><br><br>`;
     }
 
     html+=`<button type="button" id="btnSave">
@@ -152,7 +131,6 @@ function saveSchedule(){
     let date=scheduleDate.value;
     let duration=parseInt(lessonDuration.value);
     let count=parseInt(lessonCount.value);
-
     if(!date) return;
 
     let sc=safeSchedule();
@@ -170,13 +148,13 @@ function saveSchedule(){
         let name=nameEl.value.trim();
         if(!name) continue;
 
-        let teacherEl=document.getElementById("lessonTeacher_"+i);
-        let roomEl=document.getElementById("lessonRoom_"+i);
+        let teacher=document.getElementById("lessonTeacher_"+i)?.value||"-";
+        let room=document.getElementById("lessonRoom_"+i)?.value||"-";
 
         sc[date].lessons.push({
-            name:name,
-            teacher:teacherEl?teacherEl.value.trim():"-",
-            room:roomEl?roomEl.value.trim():"-"
+            name,
+            teacher,
+            room
         });
     }
 
@@ -184,35 +162,42 @@ function saveSchedule(){
     showSchedule();
 }
 
+function deleteDay(date){
+    if(!confirm("Bu güni pozmalymy?")) return;
+    let sc=safeSchedule();
+    delete sc[date];
+    localStorage.setItem("schedule",JSON.stringify(sc));
+    showSchedule();
+}
+
+window.deleteDay = deleteDay;
+
 function showSchedule(){
     let sc=safeSchedule();
     let html="";
 
     Object.keys(sc)
-        .sort((a,b)=>new Date(a)-new Date(b))
-        .forEach(d=>{
+    .sort((a,b)=>new Date(a)-new Date(b))
+    .forEach(d=>{
 
         let data=sc[d];
-        if(!data||!data.lessons) return;
+        if(!data) return;
 
-        html+=`<div class="schedule-day">
+        html+=`
+        <div class="schedule-day">
             ${getWeekDay(d)} — ${formatDate(d)}
             <button onclick="deleteDay('${d}')">Poz</button>
         </div>`;
 
-        data.lessons.forEach((lesson,i)=>{
-            let time=calcLessonTime(
-                data.start,
-                data.duration,
-                i
-            );
-
+        (data.lessons||[]).forEach((l,i)=>{
             html+=`
             <div class="lesson-card">
-                <div class="lesson-time">${time}</div>
-                <div class="lesson-title">${lesson.name||"Sapak"}</div>
-                <div>👨‍🏫 ${lesson.teacher||"-"}</div>
-                <div>🏫 ${lesson.room||"-"}</div>
+                <div class="lesson-time">
+                    ${calcLessonTime(data.start,data.duration,i)}
+                </div>
+                <div class="lesson-title">${l.name}</div>
+                <div>👨‍🏫 ${l.teacher}</div>
+                <div>🏫 ${l.room}</div>
             </div>`;
         });
     });

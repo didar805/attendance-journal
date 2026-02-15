@@ -29,9 +29,7 @@ body{font-family:Arial;margin:15px}
 
 .lesson-time{font-size:13px;color:#555;}
 .lesson-title{font-weight:bold;}
-.journal{font-size:13px;color:#333;margin-top:5px;}
 
-/* ===== JOURNAL MODAL ===== */
 #journalModal{
     display:none;
     position:fixed;
@@ -67,7 +65,6 @@ td.attend{cursor:pointer;font-weight:bold}
 <hr>
 <div id="scheduleList"></div>
 
-<!-- ===== JOURNAL WINDOW ===== -->
 <div id="journalModal">
 <button onclick="closeJournal()">⬅ Yza gaýt</button>
 <div id="journalContent"></div>
@@ -85,22 +82,12 @@ const startTime = document.getElementById("startTime");
 const lessonCount = document.getElementById("lessonCount");
 const lessonDuration = document.getElementById("lessonDuration");
 
-/* ===== STUDENTS ===== */
 const students = [
-"Балыева Б.",
-"Бердиев Р.",
-"Назаров Д.",
-"Оразов К.",
-"Оразов М.",
-"Оразова Ч.",
-"Реджеова Б.",
-"Сапарлыева К.",
-"Тораева Г.",
-"Язгельдиев Б.",
-"Янаров М."
+"Балыева Б.","Бердиев Р.","Назаров Д.","Оразов К.","Оразов М.",
+"Оразова Ч.","Реджеова Б.","Сапарлыева К.","Тораева Г.",
+"Язгельдиев Б.","Янаров М."
 ];
 
-/* ===== STORAGE ===== */
 function safeSchedule(){
     try{
         let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
@@ -114,43 +101,28 @@ function formatDate(d){
 }
 
 function getWeekDay(d){
-    const days=[
-        "Ýekşenbe","Duşenbe","Sişenbe",
-        "Çarşenbe","Penşenbe","Anna","Şenbe"
-    ];
+    const days=["Ýekşenbe","Duşenbe","Sişenbe","Çarşenbe","Penşenbe","Anna","Şenbe"];
     let dt=new Date(d);
     return isNaN(dt)?"":days[dt.getDay()];
 }
 
 function calcLessonTime(start,duration,index){
     if(!start||!duration) return "";
-
     let [h,m]=start.split(":").map(Number);
     let totalStart=h*60+m+index*(duration+10);
     if(index>=2) totalStart+=40;
-
     let end=totalStart+duration;
 
     const t=min=>{
         let hh=Math.floor(min/60);
         let mm=min%60;
-        return String(hh).padStart(2,"0")+":"+
-               String(mm).padStart(2,"0");
+        return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");
     };
 
     return t(totalStart)+" - "+t(end);
 }
 
-/* ===== ATTENDANCE TOGGLE ===== */
-window.toggleAttend = function(td){
-    if(td.innerText=="-") td.innerText="Н";
-    else if(td.innerText=="Н") td.innerText="✓";
-    else td.innerText="-";
-};
-
-/* ===== ADD LESSON ===== */
 btnStart.onclick=function(){
-
     let date=scheduleDate.value;
     let count=parseInt(lessonCount.value);
     let duration=parseInt(lessonDuration.value);
@@ -172,16 +144,13 @@ btnStart.onclick=function(){
 
     html+=`<button id="btnSave">Sakla</button>`;
     scheduleEditor.innerHTML=html;
-
     document.getElementById("btnSave").onclick=saveSchedule;
 };
 
 function saveSchedule(){
-
     let date=scheduleDate.value;
     let duration=parseInt(lessonDuration.value);
     let count=parseInt(lessonCount.value);
-
     let sc=safeSchedule();
 
     sc[date]={
@@ -205,92 +174,81 @@ function saveSchedule(){
     showSchedule();
 }
 
-/* ===== DELETE DAY ===== */
-function deleteDay(date){
+window.deleteDay=function(date){
     if(!confirm("Güni pozmalymy?")) return;
     let sc=safeSchedule();
     delete sc[date];
     localStorage.setItem("schedule",JSON.stringify(sc));
     showSchedule();
-}
-window.deleteDay=deleteDay;
+};
 
-/* ===== DELETE LESSON ===== */
-function deleteLesson(date,index){
+window.deleteLesson=function(date,index){
     if(!confirm("Parany pozmalymy?")) return;
-
     let sc=safeSchedule();
     if(!sc[date]) return;
-
     sc[date].lessons.splice(index,1);
     localStorage.setItem("schedule",JSON.stringify(sc));
     showSchedule();
-}
-window.deleteLesson=deleteLesson;
+};
 
-/* ===== OPEN JOURNAL ===== */
 function openJournal(date,index){
+    let sc=safeSchedule();
+    if(!sc[date]||!sc[date].lessons[index]) return;
 
-    let sc = safeSchedule();
-    if(!sc[date] || !sc[date].lessons[index]) return;
-
-    let lesson = sc[date].lessons[index];
+    let lesson=sc[date].lessons[index];
 
     let rows="";
     students.forEach((s,i)=>{
-        rows += `<tr>
-                    <td>${i+1}</td>
-                    <td style="text-align:left">${s}</td>
-                    <td class="attend" onclick="toggleAttend(this)">-</td>
-                 </tr>`;
+        rows+=`
+        <tr>
+            <td>${i+1}</td>
+            <td style="text-align:left">${s}</td>
+            <td class="attend">-</td>
+        </tr>`;
     });
 
-    document.getElementById("journalContent").innerHTML = `
+    journalContent.innerHTML=`
         <h2>${lesson.name}</h2>
         <p>Мугаллим: ${lesson.teacher}</p>
         <p>Кабинет: ${lesson.room}</p>
-
         <table>
             <tr>
                 <th>#</th>
-                <th>ФИО обучающегося</th>
+                <th>ФИО</th>
                 <th>Посещение</th>
             </tr>
             ${rows}
         </table>
     `;
 
-    document.getElementById("journalModal").style.display="block";
+    /* CLICK BAGLAÝARYS */
+    document.querySelectorAll(".attend").forEach(td=>{
+        td.addEventListener("click",function(){
+            if(this.innerText=="-") this.innerText="Н";
+            else if(this.innerText=="Н") this.innerText="✓";
+            else this.innerText="-";
+        });
+    });
+
+    journalModal.style.display="block";
     history.pushState({journal:true}, "");
 }
+
 window.openJournal=openJournal;
 
-/* ===== CLOSE JOURNAL ===== */
-function closeJournal(){
-    if(document.getElementById("journalModal").style.display==="block"){
-        history.back();
-    }
-}
-window.closeJournal=closeJournal;
+window.closeJournal=function(){
+    history.back();
+};
 
-/* ===== TELEFON YZA ===== */
-window.addEventListener("popstate", function(){
-    let modal=document.getElementById("journalModal");
-    if(modal.style.display==="block"){
-        modal.style.display="none";
-    }
+window.addEventListener("popstate",()=>{
+    journalModal.style.display="none";
 });
 
-/* ===== SHOW SCHEDULE ===== */
 function showSchedule(){
-
     let sc=safeSchedule();
     let html="";
 
-    Object.keys(sc)
-    .sort((a,b)=>new Date(a)-new Date(b))
-    .forEach(d=>{
-
+    Object.keys(sc).sort((a,b)=>new Date(a)-new Date(b)).forEach(d=>{
         let data=sc[d];
         if(!data) return;
 
@@ -303,11 +261,8 @@ function showSchedule(){
         (data.lessons||[]).forEach((l,i)=>{
             html+=`
             <div class="lesson-card">
-
                 <button onclick="deleteLesson('${d}',${i})">Poz</button>
-                <button onclick="openJournal('${d}',${i})">
-                    Žurnal
-                </button>
+                <button onclick="openJournal('${d}',${i})">Žurnal</button>
 
                 <div class="lesson-time">
                     ${calcLessonTime(data.start,data.duration,i)}
@@ -316,7 +271,6 @@ function showSchedule(){
                 <div class="lesson-title">${l.name}</div>
                 <div>👨‍🏫 ${l.teacher}</div>
                 <div>🏫 ${l.room}</div>
-
             </div>`;
         });
     });
@@ -325,7 +279,6 @@ function showSchedule(){
 }
 
 showSchedule();
-
 });
 </script>
 

@@ -61,6 +61,21 @@ const startTime = document.getElementById("startTime");
 const lessonCount = document.getElementById("lessonCount");
 const lessonDuration = document.getElementById("lessonDuration");
 
+/* ===== OKUWÇYLAR (RUS) ===== */
+const students = [
+"Балыева Б.",
+"Бердиев Р.",
+"Назаров Д.",
+"Оразов К.",
+"Оразов М.",
+"Оразова Ч.",
+"Реджеова Б.",
+"Сапарлыева К.",
+"Тораева Г.",
+"Язгельдиев Б.",
+"Янаров М."
+];
+
 /* ===== SAFE STORAGE ===== */
 function safeSchedule(){
     try{
@@ -69,13 +84,11 @@ function safeSchedule(){
     }catch{return {};}
 }
 
-/* ===== DATE FORMAT ===== */
 function formatDate(d){
     let p=d.split("-");
     return p[2]+"."+p[1]+"."+p[0];
 }
 
-/* ===== WEEK DAY ===== */
 function getWeekDay(d){
     const days=[
         "Ýekşenbe","Duşenbe","Sişenbe",
@@ -85,7 +98,6 @@ function getWeekDay(d){
     return isNaN(dt)?"":days[dt.getDay()];
 }
 
-/* ===== LESSON TIME ===== */
 function calcLessonTime(start,duration,index){
     if(!start||!duration) return "";
 
@@ -134,7 +146,6 @@ btnStart.onclick=function(){
     document.getElementById("btnSave").onclick=saveSchedule;
 };
 
-/* ===== SAVE ===== */
 function saveSchedule(){
 
     let date=scheduleDate.value;
@@ -188,23 +199,20 @@ function deleteLesson(date,index){
 }
 window.deleteLesson=deleteLesson;
 
-/* ===== ŽURNAL ÝAZ ===== */
-function setJournal(date,index){
-    let status=prompt("Bar / Ýok ýaz:");
-    if(!status) return;
-
-    let sc=safeSchedule();
-    sc[date].lessons[index].journal=status;
-    localStorage.setItem("schedule",JSON.stringify(sc));
-    showSchedule();
-}
-window.setJournal=setJournal;
-
 /* ===== ŽURNAL SAHYPA ===== */
 function openJournal(date,index){
 
     let sc=safeSchedule();
     let lesson=sc[date].lessons[index];
+
+    let rows="";
+    students.forEach((s,i)=>{
+        rows += `<tr>
+                    <td>${i+1}</td>
+                    <td>${s}</td>
+                    <td>-</td>
+                 </tr>`;
+    });
 
     let w=window.open("", "_blank");
 
@@ -221,17 +229,16 @@ function openJournal(date,index){
         <body>
 
         <h2>${lesson.name}</h2>
-        <p>Mugallym: ${lesson.teacher}</p>
-        <p>Kabinet: ${lesson.room}</p>
+        <p>Мугаллим: ${lesson.teacher}</p>
+        <p>Кабинет: ${lesson.room}</p>
 
         <table>
             <tr>
                 <th>#</th>
-                <th>Okuwçy</th>
-                <th>Gatnaşyk</th>
+                <th>ФИО</th>
+                <th>Посещение</th>
             </tr>
-            <tr><td>1</td><td>Okuwçy 1</td><td>${lesson.journal||"-"}</td></tr>
-            <tr><td>2</td><td>Okuwçy 2</td><td>${lesson.journal||"-"}</td></tr>
+            ${rows}
         </table>
 
         </body>

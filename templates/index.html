@@ -40,7 +40,7 @@ body{font-family:Arial;margin:15px}
 
 <input type="date" id="scheduleDate"><br><br>
 
-<input type="time" id="startTime" value="09:00"><br><br>
+<input type="time" id="startTime" value="09:30"><br><br>
 
 <input type="number" id="lessonCount"
 placeholder="Näçe para bar"><br><br>
@@ -62,11 +62,21 @@ placeholder="Para dowamlylygy (min)"><br><br>
 document.addEventListener("DOMContentLoaded", function(){
 
 /* ===== wagt hasaplaýjy ===== */
-function calcLessonTime(start, duration, breakMin, index){
+function calcLessonTime(start, duration, index){
+
     let [h,m] = start.split(":").map(Number);
 
-    let totalStart = h*60 + m +
+    let breakMin = 10;     // adaty dynç
+    let extraBreak = 40;   // 2-nji sapakdan soň goşulýan
+
+    let totalStart =
+        h*60 + m +
         index*(duration + breakMin);
+
+    // 2-nji sapakdan soň goşmaça dynç
+    if(index >= 2){
+        totalStart += extraBreak;
+    }
 
     let totalEnd = totalStart + duration;
 
@@ -82,6 +92,7 @@ function calcLessonTime(start, duration, breakMin, index){
 
 /* ===== schedule start ===== */
 document.getElementById("btnStart").onclick = function(){
+
     let date = scheduleDate.value;
     let count = parseInt(lessonCount.value);
     let duration = parseInt(lessonDuration.value);
@@ -112,6 +123,7 @@ document.getElementById("btnStart").onclick = function(){
 
 /* ===== save schedule ===== */
 function saveSchedule(){
+
     let date = scheduleDate.value;
     let duration = parseInt(lessonDuration.value);
     let count = parseInt(lessonCount.value);
@@ -133,17 +145,17 @@ function saveSchedule(){
     }
 
     localStorage.setItem("schedule", JSON.stringify(sc));
-
     showSchedule();
 }
 
 /* ===== show schedule ===== */
 function showSchedule(){
-    let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
 
+    let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
     let html="";
 
     Object.keys(sc).forEach(d=>{
+
         html += `<div class="schedule-day">${d}</div>`;
 
         let data = sc[d];
@@ -153,18 +165,13 @@ function showSchedule(){
             let time = calcLessonTime(
                 data.start,
                 data.duration,
-                10,
                 i
             );
 
             html += `
             <div class="lesson-card">
-                <div class="lesson-time">
-                    ${time}
-                </div>
-                <div class="lesson-title">
-                    ${name}
-                </div>
+                <div class="lesson-time">${time}</div>
+                <div class="lesson-title">${name}</div>
             </div>`;
         });
     });
@@ -179,3 +186,4 @@ showSchedule();
 
 </body>
 </html>
+``

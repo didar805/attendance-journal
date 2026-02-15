@@ -15,9 +15,7 @@ body{font-family:Arial;margin:15px}
     border-radius:6px;
 }
 
-.schedule-day button{
-    float:right;
-}
+.schedule-day button{float:right;}
 
 .lesson-card{
     background:#f2f2f2;
@@ -27,12 +25,11 @@ body{font-family:Arial;margin:15px}
     border-radius:6px;
 }
 
-.lesson-card button{
-    float:right;
-}
+.lesson-card button{float:right;margin-left:5px;}
 
 .lesson-time{font-size:13px;color:#555;}
 .lesson-title{font-weight:bold;}
+.journal{font-size:13px;color:#333;margin-top:5px;}
 </style>
 </head>
 
@@ -55,14 +52,13 @@ body{font-family:Arial;margin:15px}
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-const btnStart = document.getElementById("btnStart");
 const scheduleEditor = document.getElementById("scheduleEditor");
 const scheduleList = document.getElementById("scheduleList");
 
 function safeSchedule(){
     try{
         let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
-        return (typeof sc==="object" && sc)?sc:{};
+        return sc && typeof sc==="object" ? sc : {};
     }catch{return {};}
 }
 
@@ -84,11 +80,8 @@ function calcLessonTime(start,duration,index){
     if(!start||!duration) return "";
     let [h,m]=start.split(":").map(Number);
 
-    let breakMin=10;
-    let extraBreak=40;
-
-    let totalStart=h*60+m+index*(duration+breakMin);
-    if(index>=2) totalStart+=extraBreak;
+    let totalStart=h*60+m+index*(duration+10);
+    if(index>=2) totalStart+=40;
 
     let end=totalStart+duration;
 
@@ -102,6 +95,7 @@ function calcLessonTime(start,duration,index){
     return t(totalStart)+" - "+t(end);
 }
 
+/* ===== PARA GOŞ ===== */
 btnStart.onclick=function(){
 
     let date=scheduleDate.value;
@@ -123,42 +117,35 @@ btnStart.onclick=function(){
         Kabinet:<br><input id="lessonRoom_${i}"><br><br>`;
     }
 
-    html+=`<button type="button" id="btnSave">
-            Raspisaniýany sakla
-           </button>`;
-
+    html+=`<button id="btnSave">Sakla</button>`;
     scheduleEditor.innerHTML=html;
+
     document.getElementById("btnSave").onclick=saveSchedule;
 };
 
 function saveSchedule(){
+
     let date=scheduleDate.value;
     let duration=parseInt(lessonDuration.value);
     let count=parseInt(lessonCount.value);
-    if(!date) return;
 
     let sc=safeSchedule();
 
     sc[date]={
         start:startTime.value,
-        duration:duration,
+        duration,
         lessons:[]
     };
 
     for(let i=0;i<count;i++){
-        let nameEl=document.getElementById("lessonName_"+i);
-        if(!nameEl) continue;
-
-        let name=nameEl.value.trim();
+        let name=document.getElementById("lessonName_"+i)?.value.trim();
         if(!name) continue;
-
-        let teacher=document.getElementById("lessonTeacher_"+i)?.value||"-";
-        let room=document.getElementById("lessonRoom_"+i)?.value||"-";
 
         sc[date].lessons.push({
             name,
-            teacher,
-            room
+            teacher:document.getElementById("lessonTeacher_"+i)?.value||"-",
+            room:document.getElementById("lessonRoom_"+i)?.value||"-",
+            journal:""
         });
     }
 
@@ -166,30 +153,39 @@ function saveSchedule(){
     showSchedule();
 }
 
-/* ===== Gün poz ===== */
+/* ===== GÜN POZ ===== */
 function deleteDay(date){
-    if(!confirm("Bu güni pozmalymy?")) return;
+    if(!confirm("Güni pozmalymy?")) return;
     let sc=safeSchedule();
     delete sc[date];
     localStorage.setItem("schedule",JSON.stringify(sc));
     showSchedule();
 }
-window.deleteDay = deleteDay;
+window.deleteDay=deleteDay;
 
-/* ===== Para poz ===== */
+/* ===== PARA POZ ===== */
 function deleteLesson(date,index){
-    if(!confirm("Bu parany pozmalymy?")) return;
-
+    if(!confirm("Parany pozmalymy?")) return;
     let sc=safeSchedule();
-    if(!sc[date]) return;
-
     sc[date].lessons.splice(index,1);
-
     localStorage.setItem("schedule",JSON.stringify(sc));
     showSchedule();
 }
-window.deleteLesson = deleteLesson;
+window.deleteLesson=deleteLesson;
 
+/* ===== ŽURNAL ===== */
+function setJournal(date,index){
+    let status=prompt("Bar / Ýok ýaz:");
+    if(!status) return;
+
+    let sc=safeSchedule();
+    sc[date].lessons[index].journal=status;
+    localStorage.setItem("schedule",JSON.stringify(sc));
+    showSchedule();
+}
+window.setJournal=setJournal;
+
+/* ===== GÖRKEZ ===== */
 function showSchedule(){
     let sc=safeSchedule();
     let html="";
@@ -199,7 +195,6 @@ function showSchedule(){
     .forEach(d=>{
 
         let data=sc[d];
-        if(!data) return;
 
         html+=`
         <div class="schedule-day">
@@ -207,19 +202,27 @@ function showSchedule(){
             <button onclick="deleteDay('${d}')">Poz</button>
         </div>`;
 
-        (data.lessons||[]).forEach((l,i)=>{
+        data.lessons.forEach((l,i)=>{
             html+=`
             <div class="lesson-card">
-                <button onclick="deleteLesson('${d}',${i})">
-                    Poz
+
+                <button onclick="deleteLesson('${d}',${i})">Poz</button>
+                <button onclick="setJournal('${d}',${i})">
+                    Žurnal
                 </button>
 
                 <div class="lesson-time">
                     ${calcLessonTime(data.start,data.duration,i)}
                 </div>
+
                 <div class="lesson-title">${l.name}</div>
                 <div>👨‍🏫 ${l.teacher}</div>
                 <div>🏫 ${l.room}</div>
+
+                <div class="journal">
+                    Gatnaşyk: ${l.journal || "-"}
+                </div>
+
             </div>`;
         });
     });

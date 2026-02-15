@@ -61,19 +61,24 @@ placeholder="Para dowamlylygy (min)"><br><br>
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
+/* ===== Senäni owurtmak ===== */
+function formatDate(d){
+    let p = d.split("-");
+    return p[2]+"."+p[1]+"."+p[0];
+}
+
 /* ===== wagt hasaplaýjy ===== */
 function calcLessonTime(start, duration, index){
 
     let [h,m] = start.split(":").map(Number);
 
-    let breakMin = 10;     // adaty dynç
-    let extraBreak = 40;   // 2-nji sapakdan soň goşulýan
+    let breakMin = 10;
+    let extraBreak = 40;
 
     let totalStart =
         h*60 + m +
         index*(duration + breakMin);
 
-    // 2-nji sapakdan soň goşmaça dynç
     if(index >= 2){
         totalStart += extraBreak;
     }
@@ -154,9 +159,11 @@ function showSchedule(){
     let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
     let html="";
 
-    Object.keys(sc).forEach(d=>{
+    Object.keys(sc)
+        .sort()  // Günler tertip boýunça
+        .forEach(d=>{
 
-        html += `<div class="schedule-day">${d}</div>`;
+        html += `<div class="schedule-day">${formatDate(d)}</div>`;
 
         let data = sc[d];
 
@@ -186,4 +193,3 @@ showSchedule();
 
 </body>
 </html>
-``

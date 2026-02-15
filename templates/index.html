@@ -30,6 +30,23 @@ body{font-family:Arial;margin:15px}
 .lesson-time{font-size:13px;color:#555;}
 .lesson-title{font-weight:bold;}
 .journal{font-size:13px;color:#333;margin-top:5px;}
+
+/* ===== JOURNAL MODAL ===== */
+#journalModal{
+    display:none;
+    position:fixed;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    background:white;
+    overflow:auto;
+    padding:15px;
+    z-index:9999;
+}
+
+table{border-collapse:collapse;width:100%}
+td,th{border:1px solid #999;padding:6px}
+th{background:#2c3e50;color:white}
 </style>
 </head>
 
@@ -49,6 +66,12 @@ body{font-family:Arial;margin:15px}
 <hr>
 <div id="scheduleList"></div>
 
+<!-- ===== JOURNAL WINDOW ===== -->
+<div id="journalModal">
+<button onclick="closeJournal()">⬅ Yza gaýt</button>
+<div id="journalContent"></div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
@@ -61,7 +84,7 @@ const startTime = document.getElementById("startTime");
 const lessonCount = document.getElementById("lessonCount");
 const lessonDuration = document.getElementById("lessonDuration");
 
-/* ===== OKUWÇYLAR (RUS) ===== */
+/* ===== STUDENTS ===== */
 const students = [
 "Балыева Б.",
 "Бердиев Р.",
@@ -76,7 +99,7 @@ const students = [
 "Янаров М."
 ];
 
-/* ===== SAFE STORAGE ===== */
+/* ===== STORAGE ===== */
 function safeSchedule(){
     try{
         let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
@@ -102,7 +125,6 @@ function calcLessonTime(start,duration,index){
     if(!start||!duration) return "";
 
     let [h,m]=start.split(":").map(Number);
-
     let totalStart=h*60+m+index*(duration+10);
     if(index>=2) totalStart+=40;
 
@@ -118,7 +140,7 @@ function calcLessonTime(start,duration,index){
     return t(totalStart)+" - "+t(end);
 }
 
-/* ===== PARA GOŞ ===== */
+/* ===== ADD LESSON ===== */
 btnStart.onclick=function(){
 
     let date=scheduleDate.value;
@@ -167,8 +189,7 @@ function saveSchedule(){
         sc[date].lessons.push({
             name,
             teacher:document.getElementById("lessonTeacher_"+i)?.value||"-",
-            room:document.getElementById("lessonRoom_"+i)?.value||"-",
-            journal:""
+            room:document.getElementById("lessonRoom_"+i)?.value||"-"
         });
     }
 
@@ -176,7 +197,7 @@ function saveSchedule(){
     showSchedule();
 }
 
-/* ===== GÜN POZ ===== */
+/* ===== DELETE DAY ===== */
 function deleteDay(date){
     if(!confirm("Güni pozmalymy?")) return;
     let sc=safeSchedule();
@@ -186,7 +207,7 @@ function deleteDay(date){
 }
 window.deleteDay=deleteDay;
 
-/* ===== PARA POZ ===== */
+/* ===== DELETE LESSON ===== */
 function deleteLesson(date,index){
     if(!confirm("Parany pozmalymy?")) return;
 
@@ -199,7 +220,7 @@ function deleteLesson(date,index){
 }
 window.deleteLesson=deleteLesson;
 
-/* ===== ŽURNAL SAHYPA ===== */
+/* ===== OPEN JOURNAL ===== */
 function openJournal(date,index){
 
     let sc = safeSchedule();
@@ -216,23 +237,7 @@ function openJournal(date,index){
                  </tr>`;
     });
 
-    let w = window.open("about:blank","_blank");
-
-    w.document.open();
-    w.document.write(`
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Журнал</title>
-            <style>
-                body{font-family:Arial;padding:20px}
-                table{border-collapse:collapse;width:100%}
-                td,th{border:1px solid #999;padding:6px}
-                th{background:#2c3e50;color:white}
-            </style>
-        </head>
-        <body>
-
+    document.getElementById("journalContent").innerHTML = `
         <h2>${lesson.name}</h2>
         <p>Мугаллим: ${lesson.teacher}</p>
         <p>Кабинет: ${lesson.room}</p>
@@ -245,15 +250,19 @@ function openJournal(date,index){
             </tr>
             ${rows}
         </table>
+    `;
 
-        </body>
-        </html>
-    `);
-    w.document.close();
+    document.getElementById("journalModal").style.display="block";
 }
 window.openJournal=openJournal;
 
-/* ===== GÖRKEZ ===== */
+/* ===== CLOSE JOURNAL ===== */
+function closeJournal(){
+    document.getElementById("journalModal").style.display="none";
+}
+window.closeJournal=closeJournal;
+
+/* ===== SHOW SCHEDULE ===== */
 function showSchedule(){
 
     let sc=safeSchedule();
@@ -288,10 +297,6 @@ function showSchedule(){
                 <div class="lesson-title">${l.name}</div>
                 <div>👨‍🏫 ${l.teacher}</div>
                 <div>🏫 ${l.room}</div>
-
-                <div class="journal">
-                    Gatnaşyk: ${l.journal || "-"}
-                </div>
 
             </div>`;
         });

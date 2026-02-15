@@ -111,7 +111,7 @@ function calcLessonTime(start,duration,index){
     return t(totalStart)+" - "+t(end);
 }
 
-/* ===== LESSON ADD ===== */
+/* LESSON ADD */
 btnStart.onclick=function(){
     let date=scheduleDate.value;
     let count=parseInt(lessonCount.value);
@@ -167,7 +167,7 @@ function saveSchedule(){
     showSchedule();
 }
 
-/* ===== DELETE ===== */
+/* DELETE */
 window.deleteDay=function(date){
     if(!confirm("Pozmalymy?")) return;
     let sc=safeSchedule();
@@ -184,7 +184,7 @@ window.deleteLesson=function(date,index){
     showSchedule();
 };
 
-/* ===== CELL CLICK ===== */
+/* CELL CLICK */
 window.toggleCell=function(date,lessonIndex,studentIndex,hour){
     let sc=safeSchedule();
     let lesson=sc[date].lessons[lessonIndex];
@@ -202,7 +202,20 @@ window.toggleCell=function(date,lessonIndex,studentIndex,hour){
     openJournal(date,lessonIndex);
 };
 
-/* ===== JOURNAL ===== */
+/* ALL SET */
+window.setAll=function(date,lessonIndex,value){
+    let sc=safeSchedule();
+    let lesson=sc[date].lessons[lessonIndex];
+
+    students.forEach((_,i)=>{
+        lesson.journal[i]=[value,value];
+    });
+
+    saveScheduleStorage(sc);
+    openJournal(date,lessonIndex);
+};
+
+/* JOURNAL */
 function openJournal(date,index){
     let sc=safeSchedule();
     let lesson=sc[date].lessons[index];
@@ -233,6 +246,11 @@ function openJournal(date,index){
         <p>Мугаллим: ${lesson.teacher}</p>
         <p>Кабинет: ${lesson.room}</p>
 
+        <div style="margin-bottom:10px">
+            <button onclick="setAll('${date}',${index},'H')">H</button>
+            <button onclick="setAll('${date}',${index},'O')">O</button>
+        </div>
+
         <table>
             <tr>
                 <th>#</th>
@@ -256,7 +274,7 @@ window.addEventListener("popstate",()=>{
     journalModal.style.display="none";
 });
 
-/* ===== SHOW ===== */
+/* SHOW */
 function showSchedule(){
     let sc=safeSchedule();
     let html="";

@@ -61,13 +61,11 @@ placeholder="Para dowamlylygy (min)"><br><br>
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-/* ===== Senäni owurtmak ===== */
 function formatDate(d){
     let p = d.split("-");
     return p[2]+"."+p[1]+"."+p[0];
 }
 
-/* ===== Günüň ady ===== */
 function getWeekDay(dateStr){
     const days = [
         "Ýekşenbe","Duşenbe","Sişenbe",
@@ -76,7 +74,6 @@ function getWeekDay(dateStr){
     return days[new Date(dateStr).getDay()];
 }
 
-/* ===== wagt hasaplaýjy ===== */
 function calcLessonTime(start, duration, index){
 
     let [h,m] = start.split(":").map(Number);
@@ -104,7 +101,6 @@ function calcLessonTime(start, duration, index){
     return toTime(totalStart)+" - "+toTime(totalEnd);
 }
 
-/* ===== schedule start ===== */
 document.getElementById("btnStart").onclick = function(){
 
     let date = scheduleDate.value;
@@ -122,15 +118,14 @@ document.getElementById("btnStart").onclick = function(){
         html += `
         Para ${i+1}:<br>
         Sapak:
-        <input id="lessonName_${i}" placeholder="Sapak"><br>
+        <input id="lessonName_${i}"><br>
         Mugallym:
-        <input id="lessonTeacher_${i}" placeholder="Mugallym"><br>
+        <input id="lessonTeacher_${i}"><br>
         Kabinet:
-        <input id="lessonRoom_${i}" placeholder="Kabinet"><br><br>`;
+        <input id="lessonRoom_${i}"><br><br>`;
     }
 
-    html += `
-    <button type="button" id="btnSave">
+    html += `<button type="button" id="btnSave">
         Raspisaniýany sakla
     </button>`;
 
@@ -139,7 +134,6 @@ document.getElementById("btnStart").onclick = function(){
     document.getElementById("btnSave").onclick = saveSchedule;
 };
 
-/* ===== save schedule ===== */
 function saveSchedule(){
 
     let date = scheduleDate.value;
@@ -157,13 +151,15 @@ function saveSchedule(){
     for(let i=0;i<count;i++){
 
         let name =
-            document.getElementById("lessonName_"+i).value || "Sapak";
+            document.getElementById("lessonName_"+i).value.trim();
+
+        if(!name) continue;
 
         let teacher =
-            document.getElementById("lessonTeacher_"+i).value || "-";
+            document.getElementById("lessonTeacher_"+i).value.trim() || "-";
 
         let room =
-            document.getElementById("lessonRoom_"+i).value || "-";
+            document.getElementById("lessonRoom_"+i).value.trim() || "-";
 
         sc[date].lessons.push({
             name,
@@ -176,14 +172,13 @@ function saveSchedule(){
     showSchedule();
 }
 
-/* ===== show schedule ===== */
 function showSchedule(){
 
     let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
     let html="";
 
     Object.keys(sc)
-        .sort()
+        .sort((a,b)=> new Date(a)-new Date(b))
         .forEach(d=>{
 
         let data = sc[d];

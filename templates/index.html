@@ -71,6 +71,21 @@ td.clickable{cursor:pointer}
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
+/* ===== SAPAK SPISOGY ===== */
+const lessonList = [
+"Математика",
+"Менеджмент",
+"Практикум по физической культуре и спорту",
+"Статистика",
+"Физическая культура и спорт",
+"Экономика предприятия (организации)",
+"Безопасность жизнедеятельности",
+"Безопасность жизнедеятельности, часть_к 1",
+"Безопасность жизнедеятельности, часть_к 2",
+"Иностранный язык/Русский",
+"История России"
+];
+
 const students=[
 "Балыева Б.","Бердиев Р.","Назаров Д.","Оразов К.",
 "Оразов М.","Оразова Ч.","Реджеова Б.",
@@ -124,10 +139,18 @@ btnStart.onclick=function(){
 
     let html="<h3>Paralary ýaz:</h3>";
 
+    let options = lessonList
+        .map(l => `<option value="${l}">${l}</option>`)
+        .join("");
+
     for(let i=0;i<count;i++){
         html+=`
         Para ${i+1}:<br>
-        Sapak:<br><input id="lessonName_${i}"><br>
+        Sapak:<br>
+        <select id="lessonName_${i}">
+            <option value="">Saýla...</option>
+            ${options}
+        </select><br>
         Mugallym:<br><input id="lessonTeacher_${i}"><br>
         Kabinet:<br><input id="lessonRoom_${i}"><br><br>`;
     }

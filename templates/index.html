@@ -15,6 +15,10 @@ body{font-family:Arial;margin:15px}
     border-radius:6px;
 }
 
+.schedule-day button{
+    float:right;
+}
+
 .lesson-card{
     background:#f2f2f2;
     padding:10px;
@@ -39,21 +43,15 @@ body{font-family:Arial;margin:15px}
 <h2>📅 Raspisaniýa goş</h2>
 
 <input type="date" id="scheduleDate"><br><br>
-
 <input type="time" id="startTime" value="09:30"><br><br>
-
 <input type="number" id="lessonCount" placeholder="Näçe para bar"><br><br>
-
 <input type="number" id="lessonDuration" placeholder="Para dowamlylygy (min)"><br><br>
 
 <button type="button" id="btnStart">Dowam et</button>
 
 <hr>
-
 <div id="scheduleEditor"></div>
-
 <hr>
-
 <div id="scheduleList"></div>
 
 <script>
@@ -69,9 +67,16 @@ function safeSchedule(){
     }
 }
 
+function deleteDay(date){
+    if(!confirm("Bu güni pozmalymy?")) return;
+    let sc=safeSchedule();
+    delete sc[date];
+    localStorage.setItem("schedule",JSON.stringify(sc));
+    showSchedule();
+}
+
 function formatDate(d){
-    if(!d) return "";
-    let p = d.split("-");
+    let p=d.split("-");
     return p[2]+"."+p[1]+"."+p[0];
 }
 
@@ -86,7 +91,7 @@ function getWeekDay(dateStr){
 }
 
 function calcLessonTime(start,duration,index){
-    if(!start || !duration) return "";
+    if(!start||!duration) return "";
 
     let p=start.split(":");
     if(p.length!=2) return "";
@@ -112,8 +117,7 @@ function calcLessonTime(start,duration,index){
     return toTime(totalStart)+" - "+toTime(totalEnd);
 }
 
-document.getElementById("btnStart").onclick=function(){
-
+btnStart.onclick=function(){
     let date=scheduleDate.value;
     let count=parseInt(lessonCount.value);
     let duration=parseInt(lessonDuration.value);
@@ -145,7 +149,6 @@ document.getElementById("btnStart").onclick=function(){
 };
 
 function saveSchedule(){
-
     let date=scheduleDate.value;
     let duration=parseInt(lessonDuration.value);
     let count=parseInt(lessonCount.value);
@@ -182,7 +185,6 @@ function saveSchedule(){
 }
 
 function showSchedule(){
-
     let sc=safeSchedule();
     let html="";
 
@@ -194,11 +196,11 @@ function showSchedule(){
         if(!data||!data.lessons) return;
 
         html+=`<div class="schedule-day">
-                    ${getWeekDay(d)} — ${formatDate(d)}
-                </div>`;
+            ${getWeekDay(d)} — ${formatDate(d)}
+            <button onclick="deleteDay('${d}')">Poz</button>
+        </div>`;
 
         data.lessons.forEach((lesson,i)=>{
-
             let time=calcLessonTime(
                 data.start,
                 data.duration,

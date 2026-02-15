@@ -61,6 +61,7 @@ const startTime = document.getElementById("startTime");
 const lessonCount = document.getElementById("lessonCount");
 const lessonDuration = document.getElementById("lessonDuration");
 
+/* ===== SAFE STORAGE ===== */
 function safeSchedule(){
     try{
         let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
@@ -68,11 +69,13 @@ function safeSchedule(){
     }catch{return {};}
 }
 
+/* ===== DATE FORMAT ===== */
 function formatDate(d){
     let p=d.split("-");
     return p[2]+"."+p[1]+"."+p[0];
 }
 
+/* ===== WEEK DAY ===== */
 function getWeekDay(d){
     const days=[
         "Ýekşenbe","Duşenbe","Sişenbe",
@@ -82,8 +85,10 @@ function getWeekDay(d){
     return isNaN(dt)?"":days[dt.getDay()];
 }
 
+/* ===== LESSON TIME ===== */
 function calcLessonTime(start,duration,index){
     if(!start||!duration) return "";
+
     let [h,m]=start.split(":").map(Number);
 
     let totalStart=h*60+m+index*(duration+10);
@@ -129,6 +134,7 @@ btnStart.onclick=function(){
     document.getElementById("btnSave").onclick=saveSchedule;
 };
 
+/* ===== SAVE ===== */
 function saveSchedule(){
 
     let date=scheduleDate.value;
@@ -172,6 +178,7 @@ window.deleteDay=deleteDay;
 /* ===== PARA POZ ===== */
 function deleteLesson(date,index){
     if(!confirm("Parany pozmalymy?")) return;
+
     let sc=safeSchedule();
     if(!sc[date]) return;
 
@@ -181,7 +188,7 @@ function deleteLesson(date,index){
 }
 window.deleteLesson=deleteLesson;
 
-/* ===== ŽURNAL ===== */
+/* ===== ŽURNAL ÝAZ ===== */
 function setJournal(date,index){
     let status=prompt("Bar / Ýok ýaz:");
     if(!status) return;
@@ -193,8 +200,49 @@ function setJournal(date,index){
 }
 window.setJournal=setJournal;
 
+/* ===== ŽURNAL SAHYPA ===== */
+function openJournal(date,index){
+
+    let sc=safeSchedule();
+    let lesson=sc[date].lessons[index];
+
+    let w=window.open("", "_blank");
+
+    w.document.write(`
+        <html>
+        <head>
+            <title>Žurnal</title>
+            <style>
+                body{font-family:Arial;padding:20px}
+                table{border-collapse:collapse;width:100%}
+                td,th{border:1px solid #999;padding:6px}
+            </style>
+        </head>
+        <body>
+
+        <h2>${lesson.name}</h2>
+        <p>Mugallym: ${lesson.teacher}</p>
+        <p>Kabinet: ${lesson.room}</p>
+
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Okuwçy</th>
+                <th>Gatnaşyk</th>
+            </tr>
+            <tr><td>1</td><td>Okuwçy 1</td><td>${lesson.journal||"-"}</td></tr>
+            <tr><td>2</td><td>Okuwçy 2</td><td>${lesson.journal||"-"}</td></tr>
+        </table>
+
+        </body>
+        </html>
+    `);
+}
+window.openJournal=openJournal;
+
 /* ===== GÖRKEZ ===== */
 function showSchedule(){
+
     let sc=safeSchedule();
     let html="";
 
@@ -216,7 +264,7 @@ function showSchedule(){
             <div class="lesson-card">
 
                 <button onclick="deleteLesson('${d}',${i})">Poz</button>
-                <button onclick="setJournal('${d}',${i})">
+                <button onclick="openJournal('${d}',${i})">
                     Žurnal
                 </button>
 

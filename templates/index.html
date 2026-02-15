@@ -14,7 +14,6 @@ body{font-family:Arial;margin:15px}
     margin-top:15px;
     border-radius:6px;
 }
-
 .schedule-day button{float:right;}
 
 .lesson-card{
@@ -24,13 +23,11 @@ body{font-family:Arial;margin:15px}
     border-left:4px solid green;
     border-radius:6px;
 }
-
 .lesson-card button{float:right;margin-left:5px;}
 
 .lesson-time{font-size:13px;color:#555;}
 .lesson-title{font-weight:bold;}
 
-/* JOURNAL MODAL */
 #journalModal{
     display:none;
     position:fixed;
@@ -82,9 +79,8 @@ const students=[
 ];
 
 function safeSchedule(){
-    try{
-        return JSON.parse(localStorage.getItem("schedule")||"{}");
-    }catch{return {};}
+    try{return JSON.parse(localStorage.getItem("schedule")||"{}");}
+    catch{return {};}
 }
 
 function saveScheduleStorage(sc){
@@ -106,6 +102,7 @@ function calcLessonTime(start,duration,index){
     let totalStart=h*60+m+index*(duration+10);
     if(index>=2) totalStart+=40;
     let end=totalStart+duration;
+
     const t=min=>{
         let hh=Math.floor(min/60);
         let mm=min%60;
@@ -114,7 +111,7 @@ function calcLessonTime(start,duration,index){
     return t(totalStart)+" - "+t(end);
 }
 
-/* LESSON ADD */
+/* ===== LESSON ADD ===== */
 btnStart.onclick=function(){
     let date=scheduleDate.value;
     let count=parseInt(lessonCount.value);
@@ -162,7 +159,7 @@ function saveSchedule(){
             name,
             teacher:document.getElementById("lessonTeacher_"+i)?.value||"-",
             room:document.getElementById("lessonRoom_"+i)?.value||"-",
-            journal:{}   // attendance
+            journal:{}
         });
     }
 
@@ -170,50 +167,52 @@ function saveSchedule(){
     showSchedule();
 }
 
-/* DELETE */
-function deleteDay(date){
+/* ===== DELETE ===== */
+window.deleteDay=function(date){
     if(!confirm("Pozmalymy?")) return;
     let sc=safeSchedule();
     delete sc[date];
     saveScheduleStorage(sc);
     showSchedule();
-}
-window.deleteDay=deleteDay;
+};
 
-function deleteLesson(date,index){
+window.deleteLesson=function(date,index){
     if(!confirm("Pozmalymy?")) return;
     let sc=safeSchedule();
     sc[date].lessons.splice(index,1);
     saveScheduleStorage(sc);
     showSchedule();
-}
-window.deleteLesson=deleteLesson;
+};
 
-/* CELL CLICK */
+/* ===== CELL CLICK ===== */
 window.toggleCell=function(date,lessonIndex,studentIndex,hour){
     let sc=safeSchedule();
     let lesson=sc[date].lessons[lessonIndex];
 
-    if(!lesson.journal[studentIndex])
+    if(!lesson.journal[studentIndex] ||
+       lesson.journal[studentIndex].length<2){
         lesson.journal[studentIndex]=["-","-"];
+    }
 
     let cur=lesson.journal[studentIndex][hour];
     let next = cur==="-"?"H":cur==="H"?"O":"-";
     lesson.journal[studentIndex][hour]=next;
 
     saveScheduleStorage(sc);
-
     openJournal(date,lessonIndex);
 };
 
-/* JOURNAL */
+/* ===== JOURNAL ===== */
 function openJournal(date,index){
     let sc=safeSchedule();
     let lesson=sc[date].lessons[index];
 
     let rows="";
     students.forEach((s,i)=>{
-        let rec=lesson.journal[i]||["-","-"];
+        let rec=lesson.journal[i];
+        if(!rec || rec.length<2)
+            rec=["-","-"];
+
         rows+=`
         <tr>
             <td>${i+1}</td>
@@ -249,16 +248,15 @@ function openJournal(date,index){
 }
 window.openJournal=openJournal;
 
-function closeJournal(){
+window.closeJournal=function(){
     history.back();
-}
-window.closeJournal=closeJournal;
+};
 
 window.addEventListener("popstate",()=>{
     journalModal.style.display="none";
 });
 
-/* SHOW */
+/* ===== SHOW ===== */
 function showSchedule(){
     let sc=safeSchedule();
     let html="";
@@ -278,9 +276,7 @@ function showSchedule(){
             html+=`
             <div class="lesson-card">
                 <button onclick="deleteLesson('${d}',${i})">Poz</button>
-                <button onclick="openJournal('${d}',${i})">
-                    Žurnal
-                </button>
+                <button onclick="openJournal('${d}',${i})">Žurnal</button>
 
                 <div class="lesson-time">
                     ${calcLessonTime(data.start,data.duration,i)}

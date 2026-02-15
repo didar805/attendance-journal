@@ -253,14 +253,27 @@ function openJournal(date,index){
     `;
 
     document.getElementById("journalModal").style.display="block";
+
+    /* back düwme üçin */
+    history.pushState({journal:true}, "");
 }
 window.openJournal=openJournal;
 
 /* ===== CLOSE JOURNAL ===== */
 function closeJournal(){
-    document.getElementById("journalModal").style.display="none";
+    if(document.getElementById("journalModal").style.display==="block"){
+        history.back();
+    }
 }
 window.closeJournal=closeJournal;
+
+/* ===== TELEFON YZA DÜWME ===== */
+window.addEventListener("popstate", function(){
+    let modal=document.getElementById("journalModal");
+    if(modal.style.display==="block"){
+        modal.style.display="none";
+    }
+});
 
 /* ===== SHOW SCHEDULE ===== */
 function showSchedule(){

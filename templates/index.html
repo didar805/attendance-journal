@@ -42,11 +42,9 @@ body{font-family:Arial;margin:15px}
 
 <input type="time" id="startTime" value="09:30"><br><br>
 
-<input type="number" id="lessonCount"
-placeholder="Näçe para bar"><br><br>
+<input type="number" id="lessonCount" placeholder="Näçe para bar"><br><br>
 
-<input type="number" id="lessonDuration"
-placeholder="Para dowamlylygy (min)"><br><br>
+<input type="number" id="lessonDuration" placeholder="Para dowamlylygy (min)"><br><br>
 
 <button type="button" id="btnStart">Dowam et</button>
 
@@ -61,6 +59,16 @@ placeholder="Para dowamlylygy (min)"><br><br>
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
+function safeSchedule(){
+    try{
+        let sc = JSON.parse(localStorage.getItem("schedule") || "{}");
+        if(typeof sc !== "object" || sc === null) return {};
+        return sc;
+    }catch{
+        return {};
+    }
+}
+
 function formatDate(d){
     if(!d) return "";
     let p = d.split("-");
@@ -68,40 +76,35 @@ function formatDate(d){
 }
 
 function getWeekDay(dateStr){
-    if(!dateStr) return "";
-    const days = [
+    const days=[
         "Ýekşenbe","Duşenbe","Sişenbe",
         "Çarşenbe","Penşenbe","Anna","Şenbe"
     ];
-    let dt = new Date(dateStr);
+    let dt=new Date(dateStr);
     if(isNaN(dt)) return "";
     return days[dt.getDay()];
 }
 
-function calcLessonTime(start, duration, index){
-
+function calcLessonTime(start,duration,index){
     if(!start || !duration) return "";
 
-    let parts = start.split(":");
-    if(parts.length !== 2) return "";
+    let p=start.split(":");
+    if(p.length!=2) return "";
 
-    let h = Number(parts[0]);
-    let m = Number(parts[1]);
+    let h=Number(p[0]);
+    let m=Number(p[1]);
 
-    let breakMin = 10;
-    let extraBreak = 40;
+    let breakMin=10;
+    let extraBreak=40;
 
-    let totalStart =
-        h*60 + m +
-        index*(duration + breakMin);
+    let totalStart=h*60+m+index*(duration+breakMin);
+    if(index>=2) totalStart+=extraBreak;
 
-    if(index >= 2) totalStart += extraBreak;
-
-    let totalEnd = totalStart + duration;
+    let totalEnd=totalStart+duration;
 
     function toTime(min){
-        let hh = Math.floor(min/60);
-        let mm = min % 60;
+        let hh=Math.floor(min/60);
+        let mm=min%60;
         return String(hh).padStart(2,"0")+":"+
                String(mm).padStart(2,"0");
     }
@@ -109,14 +112,13 @@ function calcLessonTime(start, duration, index){
     return toTime(totalStart)+" - "+toTime(totalEnd);
 }
 
-/* start */
-document.getElementById("btnStart").onclick = function(){
+document.getElementById("btnStart").onclick=function(){
 
-    let date = scheduleDate.value;
-    let count = parseInt(lessonCount.value);
-    let duration = parseInt(lessonDuration.value);
+    let date=scheduleDate.value;
+    let count=parseInt(lessonCount.value);
+    let duration=parseInt(lessonDuration.value);
 
-    if(!date || !count || !duration){
+    if(!date||!count||!duration){
         alert("Maglumat doldur!");
         return;
     }
@@ -124,108 +126,96 @@ document.getElementById("btnStart").onclick = function(){
     let html="<h3>Paralary ýaz:</h3>";
 
     for(let i=0;i<count;i++){
-        html += `
+        html+=`
         Para ${i+1}:<br>
-        Sapak:
+        Sapak:<br>
         <input id="lessonName_${i}"><br>
-        Mugallym:
+        Mugallym:<br>
         <input id="lessonTeacher_${i}"><br>
-        Kabinet:
+        Kabinet:<br>
         <input id="lessonRoom_${i}"><br><br>`;
     }
 
-    html += `<button type="button" id="btnSave">
-        Raspisaniýany sakla
-    </button>`;
+    html+=`<button type="button" id="btnSave">
+            Raspisaniýany sakla
+           </button>`;
 
-    scheduleEditor.innerHTML = html;
-
-    document.getElementById("btnSave").onclick = saveSchedule;
+    scheduleEditor.innerHTML=html;
+    document.getElementById("btnSave").onclick=saveSchedule;
 };
 
-/* save */
 function saveSchedule(){
 
-    let date = scheduleDate.value;
-    let duration = parseInt(lessonDuration.value);
-    let count = parseInt(lessonCount.value);
+    let date=scheduleDate.value;
+    let duration=parseInt(lessonDuration.value);
+    let count=parseInt(lessonCount.value);
 
     if(!date) return;
 
-    let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
+    let sc=safeSchedule();
 
-    sc[date] = {
-        start: startTime.value,
-        duration: duration,
-        lessons: []
+    sc[date]={
+        start:startTime.value,
+        duration:duration,
+        lessons:[]
     };
 
     for(let i=0;i<count;i++){
-
-        let nameEl = document.getElementById("lessonName_"+i);
+        let nameEl=document.getElementById("lessonName_"+i);
         if(!nameEl) continue;
 
-        let name = nameEl.value.trim();
+        let name=nameEl.value.trim();
         if(!name) continue;
 
-        let teacherEl =
-            document.getElementById("lessonTeacher_"+i);
-        let roomEl =
-            document.getElementById("lessonRoom_"+i);
+        let teacherEl=document.getElementById("lessonTeacher_"+i);
+        let roomEl=document.getElementById("lessonRoom_"+i);
 
         sc[date].lessons.push({
-            name,
-            teacher: teacherEl ? teacherEl.value.trim() : "-",
-            room: roomEl ? roomEl.value.trim() : "-"
+            name:name,
+            teacher:teacherEl?teacherEl.value.trim():"-",
+            room:roomEl?roomEl.value.trim():"-"
         });
     }
 
-    localStorage.setItem("schedule", JSON.stringify(sc));
+    localStorage.setItem("schedule",JSON.stringify(sc));
     showSchedule();
 }
 
-/* show */
 function showSchedule(){
 
-    let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
+    let sc=safeSchedule();
     let html="";
 
     Object.keys(sc)
-        .sort((a,b)=> new Date(a)-new Date(b))
+        .sort((a,b)=>new Date(a)-new Date(b))
         .forEach(d=>{
 
-        let data = sc[d];
-        if(!data) return;
+        let data=sc[d];
+        if(!data||!data.lessons) return;
 
-        let dayName = getWeekDay(d);
+        html+=`<div class="schedule-day">
+                    ${getWeekDay(d)} — ${formatDate(d)}
+                </div>`;
 
-        html += `<div class="schedule-day">
-                    ${dayName} — ${formatDate(d)}
-                 </div>`;
+        data.lessons.forEach((lesson,i)=>{
 
-        (data.lessons || []).forEach((lesson,i)=>{
-
-            let name = lesson.name || "Sapak";
-            let teacher = lesson.teacher || "-";
-            let room = lesson.room || "-";
-
-            let time = calcLessonTime(
+            let time=calcLessonTime(
                 data.start,
                 data.duration,
                 i
             );
 
-            html += `
+            html+=`
             <div class="lesson-card">
                 <div class="lesson-time">${time}</div>
-                <div class="lesson-title">${name}</div>
-                <div>👨‍🏫 ${teacher}</div>
-                <div>🏫 ${room}</div>
+                <div class="lesson-title">${lesson.name||"Sapak"}</div>
+                <div>👨‍🏫 ${lesson.teacher||"-"}</div>
+                <div>🏫 ${lesson.room||"-"}</div>
             </div>`;
         });
     });
 
-    scheduleList.innerHTML = html;
+    scheduleList.innerHTML=html;
 }
 
 showSchedule();

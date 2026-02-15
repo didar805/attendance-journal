@@ -67,6 +67,15 @@ function formatDate(d){
     return p[2]+"."+p[1]+"."+p[0];
 }
 
+/* ===== Günüň ady ===== */
+function getWeekDay(dateStr){
+    const days = [
+        "Ýekşenbe","Duşenbe","Sişenbe",
+        "Çarşenbe","Penşenbe","Anna","Şenbe"
+    ];
+    return days[new Date(dateStr).getDay()];
+}
+
 /* ===== wagt hasaplaýjy ===== */
 function calcLessonTime(start, duration, index){
 
@@ -111,9 +120,13 @@ document.getElementById("btnStart").onclick = function(){
 
     for(let i=0;i<count;i++){
         html += `
-        Para ${i+1}: 
-        <input id="lessonName_${i}"
-        placeholder="Sapak ady"><br><br>`;
+        Para ${i+1}:<br>
+        Sapak:
+        <input id="lessonName_${i}" placeholder="Sapak"><br>
+        Mugallym:
+        <input id="lessonTeacher_${i}" placeholder="Mugallym"><br>
+        Kabinet:
+        <input id="lessonRoom_${i}" placeholder="Kabinet"><br><br>`;
     }
 
     html += `
@@ -142,11 +155,21 @@ function saveSchedule(){
     };
 
     for(let i=0;i<count;i++){
-        let inp = document.getElementById("lessonName_"+i);
-        let name = inp.value.trim();
-        if(!name) name = "Sapak " + (i+1);
 
-        sc[date].lessons.push(name);
+        let name =
+            document.getElementById("lessonName_"+i).value || "Sapak";
+
+        let teacher =
+            document.getElementById("lessonTeacher_"+i).value || "-";
+
+        let room =
+            document.getElementById("lessonRoom_"+i).value || "-";
+
+        sc[date].lessons.push({
+            name,
+            teacher,
+            room
+        });
     }
 
     localStorage.setItem("schedule", JSON.stringify(sc));
@@ -160,14 +183,17 @@ function showSchedule(){
     let html="";
 
     Object.keys(sc)
-        .sort()  // Günler tertip boýunça
+        .sort()
         .forEach(d=>{
 
-        html += `<div class="schedule-day">${formatDate(d)}</div>`;
-
         let data = sc[d];
+        let dayName = getWeekDay(d);
 
-        data.lessons.forEach((name,i)=>{
+        html += `<div class="schedule-day">
+                    ${dayName} — ${formatDate(d)}
+                 </div>`;
+
+        data.lessons.forEach((lesson,i)=>{
 
             let time = calcLessonTime(
                 data.start,
@@ -178,7 +204,9 @@ function showSchedule(){
             html += `
             <div class="lesson-card">
                 <div class="lesson-time">${time}</div>
-                <div class="lesson-title">${name}</div>
+                <div class="lesson-title">${lesson.name}</div>
+                <div>👨‍🏫 ${lesson.teacher}</div>
+                <div>🏫 ${lesson.room}</div>
             </div>`;
         });
     });

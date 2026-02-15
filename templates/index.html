@@ -59,6 +59,16 @@ td.clickable{cursor:pointer}
 <button id="btnStart">Dowam et</button>
 
 <hr>
+
+<!-- FILTER -->
+<div>
+<button onclick="setFilter('all')">Hemmesi</button>
+<button onclick="setFilter('lek')">Leksiýa</button>
+<button onclick="setFilter('pr')">Praktika</button>
+</div>
+
+<hr>
+
 <div id="scheduleEditor"></div>
 <hr>
 <div id="scheduleList"></div>
@@ -71,26 +81,26 @@ td.clickable{cursor:pointer}
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-/* ===== SAPAK SPISOGY ===== */
-const lessonList = [
+let currentFilter="all";
+
+/* SAPAKLAR */
+const lessonList=[
 "Математика",
 "Менеджмент",
 "Практикум по физической культуре и спорту",
 "Статистика",
 "Физическая культура и спорт",
-"Экономика предприятия (организации)",
+"Экономика предприятия",
 "Безопасность жизнедеятельности",
-"Безопасность жизнедеятельности, часть_к 1",
-"Безопасность жизнедеятельности, часть_к 2",
-"Иностранный язык/Русский",
+"Иностранный язык",
 "История России"
 ];
 
 const students=[
-"Балыева Б.","Бердиев Р.","Назаров Д.","Оразов К.",
-"Оразов М.","Оразова Ч.","Реджеова Б.",
-"Сапарлыева К.","Тораева Г.",
-"Язгельдиев Б.","Янаров М."
+"Балыева Б.","Бердиев Р.","Назаров Д.",
+"Оразов К.","Оразов М.","Оразова Ч.",
+"Реджеова Б.","Сапарлыева К.",
+"Тораева Г.","Язгельдиев Б.","Янаров М."
 ];
 
 function safeSchedule(){
@@ -126,7 +136,13 @@ function calcLessonTime(start,duration,index){
     return t(totalStart)+" - "+t(end);
 }
 
-/* ===== LESSON ADD ===== */
+/* FILTER */
+window.setFilter=function(type){
+    currentFilter=type;
+    showSchedule();
+};
+
+/* LESSON ADD */
 btnStart.onclick=function(){
     let date=scheduleDate.value;
     let count=parseInt(lessonCount.value);
@@ -137,20 +153,27 @@ btnStart.onclick=function(){
         return;
     }
 
-    let html="<h3>Paralary ýaz:</h3>";
-
-    let options = lessonList
-        .map(l => `<option value="${l}">${l}</option>`)
+    let options=lessonList
+        .map(l=>`<option value="${l}">${l}</option>`)
         .join("");
+
+    let html="<h3>Paralary ýaz:</h3>";
 
     for(let i=0;i<count;i++){
         html+=`
         Para ${i+1}:<br>
         Sapak:<br>
         <select id="lessonName_${i}">
-            <option value="">Saýla...</option>
-            ${options}
+        <option value="">Saýla...</option>
+        ${options}
         </select><br>
+
+        Görnüş:<br>
+        <select id="lessonType_${i}">
+        <option value="lek">Leksiýa</option>
+        <option value="pr">Praktika</option>
+        </select><br>
+
         Mugallym:<br><input id="lessonTeacher_${i}"><br>
         Kabinet:<br><input id="lessonRoom_${i}"><br><br>`;
     }
@@ -158,7 +181,7 @@ btnStart.onclick=function(){
     html+=`<button id="btnSave">Sakla</button>`;
     scheduleEditor.innerHTML=html;
 
-    document.getElementById("btnSave").onclick=saveSchedule;
+    btnSave.onclick=saveSchedule;
 };
 
 function saveSchedule(){
@@ -168,11 +191,7 @@ function saveSchedule(){
 
     let sc=safeSchedule();
 
-    sc[date]={
-        start:startTime.value,
-        duration,
-        lessons:[]
-    };
+    sc[date]={start:startTime.value,duration,lessons:[]};
 
     for(let i=0;i<count;i++){
         let name=document.getElementById("lessonName_"+i)?.value.trim();
@@ -180,6 +199,7 @@ function saveSchedule(){
 
         sc[date].lessons.push({
             name,
+            type:document.getElementById("lessonType_"+i).value,
             teacher:document.getElementById("lessonTeacher_"+i)?.value||"-",
             room:document.getElementById("lessonRoom_"+i)?.value||"-",
             journal:{}
@@ -190,7 +210,7 @@ function saveSchedule(){
     showSchedule();
 }
 
-/* ===== DELETE ===== */
+/* DELETE */
 window.deleteDay=function(date){
     if(!confirm("Pozmalymy?")) return;
     let sc=safeSchedule();
@@ -200,107 +220,46 @@ window.deleteDay=function(date){
 };
 
 window.deleteLesson=function(date,index){
-    if(!confirm("Pozmalymy?")) return;
     let sc=safeSchedule();
     sc[date].lessons.splice(index,1);
     saveScheduleStorage(sc);
     showSchedule();
 };
 
-/* ===== CELL CLICK ===== */
-window.toggleCell=function(date,lessonIndex,studentIndex,hour){
-    let sc=safeSchedule();
-    let lesson=sc[date].lessons[lessonIndex];
-
-    if(!lesson.journal[studentIndex] ||
-       lesson.journal[studentIndex].length<2){
-        lesson.journal[studentIndex]=["-","-"];
-    }
-
-    let cur=lesson.journal[studentIndex][hour];
-    let next = cur==="-"?"H":cur==="H"?"O":"-";
-    lesson.journal[studentIndex][hour]=next;
-
-    saveScheduleStorage(sc);
-    openJournal(date,lessonIndex);
-};
-
-/* ===== SET ALL ===== */
-window.setAll=function(date,lessonIndex,value){
-    let sc=safeSchedule();
-
-    if(!sc[date] || !sc[date].lessons[lessonIndex]) return;
-
-    let lesson=sc[date].lessons[lessonIndex];
-
-    students.forEach((_,i)=>{
-        lesson.journal[i]=[value,value];
-    });
-
-    saveScheduleStorage(sc);
-    openJournal(date,lessonIndex);
-};
-
-/* ===== JOURNAL ===== */
-function openJournal(date,index){
+/* JOURNAL */
+window.openJournal=function(date,index){
     let sc=safeSchedule();
     let lesson=sc[date].lessons[index];
 
     let rows="";
     students.forEach((s,i)=>{
-        let rec=lesson.journal[i];
-        if(!rec || rec.length<2)
-            rec=["-","-"];
+        let rec=lesson.journal[i]||["-","-"];
 
         rows+=`
         <tr>
-            <td>${i+1}</td>
-            <td style="text-align:left">${s}</td>
-            <td class="clickable"
-             onclick="toggleCell('${date}',${index},${i},0)">
-             ${rec[0]}
-            </td>
-            <td class="clickable"
-             onclick="toggleCell('${date}',${index},${i},1)">
-             ${rec[1]}
-            </td>
+        <td>${i+1}</td>
+        <td style="text-align:left">${s}</td>
+        <td>${rec[0]}</td>
+        <td>${rec[1]}</td>
         </tr>`;
     });
 
     journalContent.innerHTML=`
-        <h2>${lesson.name}</h2>
-        <p>Мугаллим: ${lesson.teacher}</p>
-        <p>Кабинет: ${lesson.room}</p>
-
-        <div style="margin-bottom:10px">
-            <button onclick="setAll('${date}',${index},'H');return false;">H</button>
-            <button onclick="setAll('${date}',${index},'O');return false;">O</button>
-        </div>
-
-        <table>
-            <tr>
-                <th>#</th>
-                <th>ФИО</th>
-                <th>1 sagat</th>
-                <th>2 sagat</th>
-            </tr>
-            ${rows}
-        </table>`;
+    <h2>${lesson.name}</h2>
+    <p>${lesson.teacher} | ${lesson.room}</p>
+    <table>
+    <tr><th>#</th><th>ФИО</th><th>1</th><th>2</th></tr>
+    ${rows}
+    </table>`;
 
     journalModal.style.display="block";
-    history.pushState({journal:true},"");
-}
-window.openJournal=openJournal;
-
-window.closeJournal=function(){
-    history.back();
 };
 
-window.addEventListener("popstate",()=>{
+window.closeJournal=function(){
     journalModal.style.display="none";
-});
+};
 
-/* ===== SHOW ===== */
+/* SHOW */
 function showSchedule(){
     let sc=safeSchedule();
     let html="";
@@ -312,23 +271,30 @@ function showSchedule(){
 
         html+=`
         <div class="schedule-day">
-            ${getWeekDay(d)} — ${formatDate(d)}
-            <button onclick="deleteDay('${d}')">Poz</button>
+        ${getWeekDay(d)} — ${formatDate(d)}
+        <button onclick="deleteDay('${d}')">Poz</button>
         </div>`;
 
         data.lessons.forEach((l,i)=>{
+
+            if(currentFilter!=="all" && l.type!==currentFilter)
+                return;
+
             html+=`
             <div class="lesson-card">
-                <button onclick="deleteLesson('${d}',${i})">Poz</button>
-                <button onclick="openJournal('${d}',${i})">Žurnal</button>
+            <button onclick="deleteLesson('${d}',${i})">Poz</button>
+            <button onclick="openJournal('${d}',${i})">Žurnal</button>
 
-                <div class="lesson-time">
-                    ${calcLessonTime(data.start,data.duration,i)}
-                </div>
+            <div class="lesson-time">
+            ${calcLessonTime(data.start,data.duration,i)}
+            </div>
 
-                <div class="lesson-title">${l.name}</div>
-                <div>👨‍🏫 ${l.teacher}</div>
-                <div>🏫 ${l.room}</div>
+            <div class="lesson-title">
+            ${l.name} (${l.type==="lek"?"Leksiýa":"Praktika"})
+            </div>
+
+            <div>👨‍🏫 ${l.teacher}</div>
+            <div>🏫 ${l.room}</div>
             </div>`;
         });
     });

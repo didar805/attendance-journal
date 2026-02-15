@@ -202,8 +202,10 @@ window.deleteLesson=deleteLesson;
 /* ===== ŽURNAL SAHYPA ===== */
 function openJournal(date,index){
 
-    let sc=safeSchedule();
-    let lesson=sc[date].lessons[index];
+    let sc = safeSchedule();
+    if(!sc[date] || !sc[date].lessons[index]) return;
+
+    let lesson = sc[date].lessons[index];
 
     let rows="";
     students.forEach((s,i)=>{
@@ -214,16 +216,19 @@ function openJournal(date,index){
                  </tr>`;
     });
 
-    let w=window.open("", "_blank");
+    let w = window.open("about:blank","_blank");
 
+    w.document.open();
     w.document.write(`
         <html>
         <head>
-            <title>Žurnal</title>
+            <meta charset="UTF-8">
+            <title>Журнал</title>
             <style>
                 body{font-family:Arial;padding:20px}
                 table{border-collapse:collapse;width:100%}
                 td,th{border:1px solid #999;padding:6px}
+                th{background:#2c3e50;color:white}
             </style>
         </head>
         <body>
@@ -235,7 +240,7 @@ function openJournal(date,index){
         <table>
             <tr>
                 <th>#</th>
-                <th>ФИО</th>
+                <th>ФИО обучающегося</th>
                 <th>Посещение</th>
             </tr>
             ${rows}
@@ -244,6 +249,7 @@ function openJournal(date,index){
         </body>
         </html>
     `);
+    w.document.close();
 }
 window.openJournal=openJournal;
 

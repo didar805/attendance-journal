@@ -45,8 +45,9 @@ body{font-family:Arial;margin:15px}
 }
 
 table{border-collapse:collapse;width:100%}
-td,th{border:1px solid #999;padding:6px}
+td,th{border:1px solid #999;padding:6px;text-align:center}
 th{background:#2c3e50;color:white}
+td.attend{cursor:pointer;font-weight:bold}
 </style>
 </head>
 
@@ -140,6 +141,13 @@ function calcLessonTime(start,duration,index){
     return t(totalStart)+" - "+t(end);
 }
 
+/* ===== ATTENDANCE TOGGLE ===== */
+window.toggleAttend = function(td){
+    if(td.innerText=="-") td.innerText="Н";
+    else if(td.innerText=="Н") td.innerText="✓";
+    else td.innerText="-";
+};
+
 /* ===== ADD LESSON ===== */
 btnStart.onclick=function(){
 
@@ -232,8 +240,8 @@ function openJournal(date,index){
     students.forEach((s,i)=>{
         rows += `<tr>
                     <td>${i+1}</td>
-                    <td>${s}</td>
-                    <td>-</td>
+                    <td style="text-align:left">${s}</td>
+                    <td class="attend" onclick="toggleAttend(this)">-</td>
                  </tr>`;
     });
 
@@ -253,8 +261,6 @@ function openJournal(date,index){
     `;
 
     document.getElementById("journalModal").style.display="block";
-
-    /* back düwme üçin */
     history.pushState({journal:true}, "");
 }
 window.openJournal=openJournal;
@@ -267,7 +273,7 @@ function closeJournal(){
 }
 window.closeJournal=closeJournal;
 
-/* ===== TELEFON YZA DÜWME ===== */
+/* ===== TELEFON YZA ===== */
 window.addEventListener("popstate", function(){
     let modal=document.getElementById("journalModal");
     if(modal.style.display==="block"){

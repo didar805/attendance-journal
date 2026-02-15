@@ -27,6 +27,10 @@ body{font-family:Arial;margin:15px}
     border-radius:6px;
 }
 
+.lesson-card button{
+    float:right;
+}
+
 .lesson-time{font-size:13px;color:#555;}
 .lesson-title{font-weight:bold;}
 </style>
@@ -162,6 +166,7 @@ function saveSchedule(){
     showSchedule();
 }
 
+/* ===== Gün poz ===== */
 function deleteDay(date){
     if(!confirm("Bu güni pozmalymy?")) return;
     let sc=safeSchedule();
@@ -169,8 +174,21 @@ function deleteDay(date){
     localStorage.setItem("schedule",JSON.stringify(sc));
     showSchedule();
 }
-
 window.deleteDay = deleteDay;
+
+/* ===== Para poz ===== */
+function deleteLesson(date,index){
+    if(!confirm("Bu parany pozmalymy?")) return;
+
+    let sc=safeSchedule();
+    if(!sc[date]) return;
+
+    sc[date].lessons.splice(index,1);
+
+    localStorage.setItem("schedule",JSON.stringify(sc));
+    showSchedule();
+}
+window.deleteLesson = deleteLesson;
 
 function showSchedule(){
     let sc=safeSchedule();
@@ -192,6 +210,10 @@ function showSchedule(){
         (data.lessons||[]).forEach((l,i)=>{
             html+=`
             <div class="lesson-card">
+                <button onclick="deleteLesson('${d}',${i})">
+                    Poz
+                </button>
+
                 <div class="lesson-time">
                     ${calcLessonTime(data.start,data.duration,i)}
                 </div>

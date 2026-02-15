@@ -62,21 +62,31 @@ placeholder="Para dowamlylygy (min)"><br><br>
 document.addEventListener("DOMContentLoaded", function(){
 
 function formatDate(d){
+    if(!d) return "";
     let p = d.split("-");
     return p[2]+"."+p[1]+"."+p[0];
 }
 
 function getWeekDay(dateStr){
+    if(!dateStr) return "";
     const days = [
         "Ýekşenbe","Duşenbe","Sişenbe",
         "Çarşenbe","Penşenbe","Anna","Şenbe"
     ];
-    return days[new Date(dateStr).getDay()];
+    let dt = new Date(dateStr);
+    if(isNaN(dt)) return "";
+    return days[dt.getDay()];
 }
 
 function calcLessonTime(start, duration, index){
 
-    let [h,m] = start.split(":").map(Number);
+    if(!start || !duration) return "";
+
+    let parts = start.split(":");
+    if(parts.length !== 2) return "";
+
+    let h = Number(parts[0]);
+    let m = Number(parts[1]);
 
     let breakMin = 10;
     let extraBreak = 40;
@@ -165,8 +175,8 @@ function saveSchedule(){
 
         sc[date].lessons.push({
             name,
-            teacher: teacherEl?.value.trim() || "-",
-            room: roomEl?.value.trim() || "-"
+            teacher: teacherEl ? teacherEl.value.trim() : "-",
+            room: roomEl ? roomEl.value.trim() : "-"
         });
     }
 
@@ -185,6 +195,8 @@ function showSchedule(){
         .forEach(d=>{
 
         let data = sc[d];
+        if(!data) return;
+
         let dayName = getWeekDay(d);
 
         html += `<div class="schedule-day">
@@ -193,17 +205,9 @@ function showSchedule(){
 
         (data.lessons || []).forEach((lesson,i)=>{
 
-            let name, teacher, room;
-
-            if(typeof lesson === "string"){
-                name = lesson;
-                teacher = "-";
-                room = "-";
-            }else{
-                name = lesson.name || "Sapak";
-                teacher = lesson.teacher || "-";
-                room = lesson.room || "-";
-            }
+            let name = lesson.name || "Sapak";
+            let teacher = lesson.teacher || "-";
+            let room = lesson.room || "-";
 
             let time = calcLessonTime(
                 data.start,

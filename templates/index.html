@@ -42,7 +42,7 @@ body{font-family:Arial;margin:15px}
 <input type="number" id="lessonCount" placeholder="Näçe para bar"><br><br>
 <input type="number" id="lessonDuration" placeholder="Para dowamlylygy"><br><br>
 
-<button type="button" id="btnStart">Dowam et</button>
+<button id="btnStart">Dowam et</button>
 
 <hr>
 <div id="scheduleEditor"></div>
@@ -54,6 +54,12 @@ document.addEventListener("DOMContentLoaded", function(){
 
 const scheduleEditor = document.getElementById("scheduleEditor");
 const scheduleList = document.getElementById("scheduleList");
+const btnStart = document.getElementById("btnStart");
+
+const scheduleDate = document.getElementById("scheduleDate");
+const startTime = document.getElementById("startTime");
+const lessonCount = document.getElementById("lessonCount");
+const lessonDuration = document.getElementById("lessonDuration");
 
 function safeSchedule(){
     try{
@@ -167,6 +173,8 @@ window.deleteDay=deleteDay;
 function deleteLesson(date,index){
     if(!confirm("Parany pozmalymy?")) return;
     let sc=safeSchedule();
+    if(!sc[date]) return;
+
     sc[date].lessons.splice(index,1);
     localStorage.setItem("schedule",JSON.stringify(sc));
     showSchedule();
@@ -195,6 +203,7 @@ function showSchedule(){
     .forEach(d=>{
 
         let data=sc[d];
+        if(!data) return;
 
         html+=`
         <div class="schedule-day">
@@ -202,7 +211,7 @@ function showSchedule(){
             <button onclick="deleteDay('${d}')">Poz</button>
         </div>`;
 
-        data.lessons.forEach((l,i)=>{
+        (data.lessons||[]).forEach((l,i)=>{
             html+=`
             <div class="lesson-card">
 

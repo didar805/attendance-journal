@@ -85,9 +85,7 @@ function calcLessonTime(start, duration, index){
         h*60 + m +
         index*(duration + breakMin);
 
-    if(index >= 2){
-        totalStart += extraBreak;
-    }
+    if(index >= 2) totalStart += extraBreak;
 
     let totalEnd = totalStart + duration;
 
@@ -101,6 +99,7 @@ function calcLessonTime(start, duration, index){
     return toTime(totalStart)+" - "+toTime(totalEnd);
 }
 
+/* start */
 document.getElementById("btnStart").onclick = function(){
 
     let date = scheduleDate.value;
@@ -134,11 +133,14 @@ document.getElementById("btnStart").onclick = function(){
     document.getElementById("btnSave").onclick = saveSchedule;
 };
 
+/* save */
 function saveSchedule(){
 
     let date = scheduleDate.value;
     let duration = parseInt(lessonDuration.value);
     let count = parseInt(lessonCount.value);
+
+    if(!date) return;
 
     let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
 
@@ -150,21 +152,21 @@ function saveSchedule(){
 
     for(let i=0;i<count;i++){
 
-        let name =
-            document.getElementById("lessonName_"+i).value.trim();
+        let nameEl = document.getElementById("lessonName_"+i);
+        if(!nameEl) continue;
 
+        let name = nameEl.value.trim();
         if(!name) continue;
 
-        let teacher =
-            document.getElementById("lessonTeacher_"+i).value.trim() || "-";
-
-        let room =
-            document.getElementById("lessonRoom_"+i).value.trim() || "-";
+        let teacherEl =
+            document.getElementById("lessonTeacher_"+i);
+        let roomEl =
+            document.getElementById("lessonRoom_"+i);
 
         sc[date].lessons.push({
             name,
-            teacher,
-            room
+            teacher: teacherEl?.value.trim() || "-",
+            room: roomEl?.value.trim() || "-"
         });
     }
 
@@ -172,6 +174,7 @@ function saveSchedule(){
     showSchedule();
 }
 
+/* show */
 function showSchedule(){
 
     let sc = JSON.parse(localStorage.getItem("schedule")||"{}");
@@ -188,7 +191,19 @@ function showSchedule(){
                     ${dayName} — ${formatDate(d)}
                  </div>`;
 
-        data.lessons.forEach((lesson,i)=>{
+        (data.lessons || []).forEach((lesson,i)=>{
+
+            let name, teacher, room;
+
+            if(typeof lesson === "string"){
+                name = lesson;
+                teacher = "-";
+                room = "-";
+            }else{
+                name = lesson.name || "Sapak";
+                teacher = lesson.teacher || "-";
+                room = lesson.room || "-";
+            }
 
             let time = calcLessonTime(
                 data.start,
@@ -199,9 +214,9 @@ function showSchedule(){
             html += `
             <div class="lesson-card">
                 <div class="lesson-time">${time}</div>
-                <div class="lesson-title">${lesson.name}</div>
-                <div>👨‍🏫 ${lesson.teacher}</div>
-                <div>🏫 ${lesson.room}</div>
+                <div class="lesson-title">${name}</div>
+                <div>👨‍🏫 ${teacher}</div>
+                <div>🏫 ${room}</div>
             </div>`;
         });
     });
